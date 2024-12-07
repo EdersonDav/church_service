@@ -1,4 +1,17 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+  "compilerOptions": {
+    "outDir": "dist/api"
+  },
+  "exclude": [
+    "node_modules",
+    "test",
+    "dist",
+    "**/*spec.ts",
+    "**/database/repositories/fakes/*.fake.ts",
+    "**/*.mock.ts",
+    "**/database/repositories/fakes",
+    "mock.ts",
+    "fakes"
+  ]
 }
