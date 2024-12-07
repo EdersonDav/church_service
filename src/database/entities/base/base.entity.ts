@@ -17,8 +17,4 @@ export class BaseEntity<Entity> {
 
   @DeleteDateColumn()
   deleted_at?: Date;
-
-  set(data: Partial<Entity>): void {
-    Object.assign(this, data);
-  }
 }
