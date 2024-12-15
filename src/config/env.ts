@@ -16,4 +16,8 @@ export const env = {
     USER: process.env.DB_USER,
     SCHEMA: process.env.DB_SCHEMA,
   },
+  jwtConstants: {
+    secret: process.env.SECRET,
+    expiresIn: '1h'
+  }
 };

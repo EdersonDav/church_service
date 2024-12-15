@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
-export class CreatePessoaTable1733608780250 implements MigrationInterface {
+export class CreateUserTable1733608780250 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query('DROP EXTENSION "uuid-ossp"')
         await queryRunner.query('CREATE EXTENSION "uuid-ossp"')
         await queryRunner.createTable(
             new Table({
-                name: 'pessoas',
+                name: 'users',
                 columns: [
                     {
                         name: 'id',
@@ -31,16 +31,21 @@ export class CreatePessoaTable1733608780250 implements MigrationInterface {
                     {
                         name: 'email',
                         type: 'varchar',
+                        isUnique: true
                     },
                     {
-                        name: 'senha',
+                        name: 'password',
                         type: 'varchar',
                     },
                     {
                         name: 'role',
                         type: 'enum',
-                        enum: ['admin', 'voluntario', 'root'],
+                        enum: ['admin', 'voluntary', 'root'],
                     },
+                    {
+                        name: 'name',
+                        type: 'varchar',
+                    }
                 ],
             }),
             true,
@@ -48,7 +53,7 @@ export class CreatePessoaTable1733608780250 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropTable('pessoas')
+        await queryRunner.dropTable('users')
     }
 
 }
