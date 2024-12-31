@@ -14,10 +14,10 @@ export class LoginController {
 
   @Post('login')
   async login(
-    @Body() { email: queryEmail, password }: LoginQuery,
+    @Body() body: LoginQuery,
     @Res() res: Response
   ): Promise<Response<UserResponse>> {
-    const { data } = await this.validateUser.execute({ email: queryEmail, password });
+    const { data } = await this.validateUser.execute({ email: body.email, password: body.password });
     if (!data) {
       throw new UnauthorizedException('Credenciais inválidas');
     }

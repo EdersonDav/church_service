@@ -14,6 +14,7 @@ export class CreateUserTable1733608780250 implements MigrationInterface {
                         type: 'varchar',
                         isPrimary: true,
                         generationStrategy: 'uuid',
+                        isUnique: true
                     },
                     {
                         name: 'created_at',
@@ -23,10 +24,12 @@ export class CreateUserTable1733608780250 implements MigrationInterface {
                     {
                         name: 'updated_at',
                         type: 'timestamp',
+                        default: 'now()',
                     },
                     {
                         name: 'deleted_at',
                         type: 'timestamp',
+                        isNullable: true
                     },
                     {
                         name: 'email',
