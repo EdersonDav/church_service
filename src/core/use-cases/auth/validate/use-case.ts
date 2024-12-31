@@ -11,8 +11,13 @@ export class ValidateUser {
   async execute({ email, password }: Input): Promise<Output> {
     const user = await this.userRepository.getByEmail(email);
     if (user && bcrypt.compareSync(password, user.password)) {
-      return { user };
+      const data = {
+        email: user.email,
+        name: user.name,
+        role: user.role
+      }
+      return { data };
     }
-    return { user: null };
+    return { data: null };
   }
 }

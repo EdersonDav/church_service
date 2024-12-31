@@ -3,6 +3,6 @@ import { CoreModule } from '../../core';
 import { DataBaseModule } from '../../database';
 
 @Module({
-  imports: [CoreModule, DataBaseModule, ControllerModule],
+  imports: [CoreModule, DataBaseModule, ControllerModule]
 })
-export class ControllerModule {}
+export class ControllerModule { }

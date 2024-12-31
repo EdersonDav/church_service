@@ -17,7 +17,7 @@ import { User } from './entities';
       username: env.db.USER,
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([]),
+    TypeOrmModule.forFeature([User]),
   ],
   providers: [
     UserService,

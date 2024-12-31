@@ -1,5 +1,11 @@
-import { User } from "../../../../database/entities";
+import { RoleEnum } from "../../../../enums";
+
+class UserOutput {
+    email!: string;
+    name!: string;
+    role!: RoleEnum
+}
 
 export class Output {
-    user!: User | null
+    data!: UserOutput | null
 }

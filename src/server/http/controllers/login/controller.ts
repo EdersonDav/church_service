@@ -1,6 +1,7 @@
 import { Body, Controller, Post, UnauthorizedException, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { CreateToken, ValidateUser } from '../../../../core/use-cases/auth';
+import { CreateToken } from '../../../../core/use-cases/auth/create';
+import { ValidateUser } from '../../../../core/use-cases/auth/validate';
 import { LoginQuery } from '../dtos/login/query';
 import { UserResponse } from '../dtos/login/response';
 
@@ -16,18 +17,16 @@ export class LoginController {
     @Body() { email: queryEmail, password }: LoginQuery,
     @Res() res: Response
   ): Promise<Response<UserResponse>> {
-    const { user } = await this.validateUser.execute({ email: queryEmail, password });
-    if (!user) {
+    const { data } = await this.validateUser.execute({ email: queryEmail, password });
+    if (!data) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const { email, name, role } = user;
+    const { email, name, role } = data;
     const { access_token } = await this.createToken.execute({ email, name, role });
 
-    // Adicionando o token ao header
     res.setHeader('Authorization', `Bearer ${access_token}`);
 
-    // Enviando a resposta com os dados do usuário
     return res.status(200).send({ data: { email, name, role } });
 
   }

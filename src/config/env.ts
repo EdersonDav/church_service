@@ -19,5 +19,8 @@ export const env = {
   jwtConstants: {
     secret: process.env.SECRET,
     expiresIn: '1h'
+  },
+  bcrypt: {
+    saltRounds: 10
   }
 };
