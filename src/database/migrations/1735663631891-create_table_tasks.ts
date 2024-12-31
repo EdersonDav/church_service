@@ -1,14 +1,12 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 import { EntityEnum } from "../../enums";
 
-export class CreateUserTable1733608780250 implements MigrationInterface {
+export class CreateTableTasks1735663631891 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query('DROP EXTENSION "uuid-ossp"')
-        await queryRunner.query('CREATE EXTENSION "uuid-ossp"')
         await queryRunner.createTable(
             new Table({
-                name: EntityEnum.USER,
+                name: EntityEnum.TASK,
                 columns: [
                     {
                         name: 'id',
@@ -33,22 +31,19 @@ export class CreateUserTable1733608780250 implements MigrationInterface {
                         isNullable: true
                     },
                     {
-                        name: 'email',
+                        name: 'name',
                         type: 'varchar',
                         isUnique: true
                     },
                     {
-                        name: 'password',
+                        name: 'icon',
                         type: 'varchar',
+                        isNullable: true
                     },
                     {
-                        name: 'role',
-                        type: 'enum',
-                        enum: ['admin', 'voluntary', 'root'],
-                    },
-                    {
-                        name: 'name',
-                        type: 'varchar',
+                        name: 'description',
+                        type: 'text',
+                        isNullable: true
                     }
                 ],
             }),
@@ -57,7 +52,7 @@ export class CreateUserTable1733608780250 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropTable(EntityEnum.USER)
+        await queryRunner.dropTable(EntityEnum.TASK)
     }
 
 }

@@ -1,3 +1,4 @@
 export enum EntityEnum {
-    USER = 'users'
+    USER = 'users',
+    TASK = 'tasks'
 }
