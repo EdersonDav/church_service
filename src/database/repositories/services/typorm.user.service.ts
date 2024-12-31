@@ -17,8 +17,8 @@ export class UserService implements UserRepository {
   }
 
   async save(user: Partial<User>): Promise<User> {
-    const user_created = this.entity.create(user);
-    await this.entity.save(user_created);
-    return user_created;
+    const userCreated = this.entity.create(user);
+    await this.entity.save(userCreated);
+    return userCreated;
   }
 }

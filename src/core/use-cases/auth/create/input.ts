@@ -1,8 +1,8 @@
-import { IsEmail, IsEnum, IsUUID } from "class-validator";
+import { IsEmail, IsEnum, IsString } from "class-validator";
 import { RoleEnum } from "../../../../enums";
 
 export class Input {
-    @IsUUID()
+    @IsString()
     name!: string
 
     @IsEmail()

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from '../config';
-import { UserService } from './repositories/services';
-import { UserRepository } from './repositories/interfaces';
-import { User } from './entities';
+import { UserService, TaskService } from './repositories/services';
+import { TaskRepository, UserRepository } from './repositories/interfaces';
+import { Task, User } from './entities';
 
 @Module({
   imports: [
@@ -12,23 +12,30 @@ import { User } from './entities';
       host: env.db.HOST,
       port: env.db.PORT,
       database: env.db.NAME,
-      entities: [User],
+      entities: [User, Task],
       password: env.db.PASSWORD,
       username: env.db.USER,
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Task]),
   ],
   providers: [
     UserService,
     {
       provide: UserRepository,
       useClass: UserService,
+    },
+    Task,
+    {
+      provide: TaskRepository,
+      useClass: TaskService
     }
   ],
   exports: [
     UserRepository,
-    UserService
+    UserService,
+    TaskRepository,
+    TaskService
   ],
 })
 export class DataBaseModule { }
