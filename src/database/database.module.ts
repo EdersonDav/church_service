@@ -25,7 +25,7 @@ import { Task, User } from './entities';
       provide: UserRepository,
       useClass: UserService,
     },
-    Task,
+    TaskService,
     {
       provide: TaskRepository,
       useClass: TaskService

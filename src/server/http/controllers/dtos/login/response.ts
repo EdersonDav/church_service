@@ -19,7 +19,7 @@ export class UserResponseData {
 }
 
 export class UserResponse {
-    @ApiProperty({ description: 'Data user and repositories response' })
+    @ApiProperty({ description: 'Data user and response' })
     @Expose()
     @Type(() => UserResponseData)
     data!: UserResponseData;

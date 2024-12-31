@@ -1,6 +1,6 @@
 import { IsEmail, IsString } from "class-validator"
 
-export class LoginQuery {
+export class LoginBody {
     @IsString()
     password!: string
 

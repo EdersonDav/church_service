@@ -2,7 +2,7 @@ import { Body, Controller, Post, UnauthorizedException, Res } from '@nestjs/comm
 import { Response } from 'express';
 import { CreateToken } from '../../../../core/use-cases/auth/create';
 import { ValidateUser } from '../../../../core/use-cases/auth/validate';
-import { LoginQuery } from '../dtos/login/query';
+import { LoginBody } from '../dtos/login/query';
 import { UserResponse } from '../dtos/login/response';
 
 @Controller()
@@ -14,7 +14,7 @@ export class LoginController {
 
   @Post('login')
   async login(
-    @Body() body: LoginQuery,
+    @Body() body: LoginBody,
     @Res() res: Response
   ): Promise<Response<UserResponse>> {
     const { data } = await this.validateUser.execute({ email: body.email, password: body.password });
