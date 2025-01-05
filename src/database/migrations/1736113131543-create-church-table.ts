@@ -1,18 +1,19 @@
-import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-import { EntityEnum } from '../../enums';
+import { MigrationInterface, QueryRunner, Table } from "typeorm";
+import { EntityEnum } from "../../enums";
 
-export class CreateTableTasks1735663631891 implements MigrationInterface {
+export class CreateChurchTable1736113131543 implements MigrationInterface {
+
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.createTable(
             new Table({
-                name: EntityEnum.TASK,
+                name: EntityEnum.CHURCH,
                 columns: [
                     {
                         name: 'id',
                         type: 'varchar',
                         isPrimary: true,
                         generationStrategy: 'uuid',
-                        isUnique: true,
+                        isUnique: true
                     },
                     {
                         name: 'created_at',
@@ -27,23 +28,13 @@ export class CreateTableTasks1735663631891 implements MigrationInterface {
                     {
                         name: 'deleted_at',
                         type: 'timestamp',
-                        isNullable: true,
+                        isNullable: true
                     },
                     {
                         name: 'name',
                         type: 'varchar',
-                        isUnique: true,
-                    },
-                    {
-                        name: 'icon',
-                        type: 'varchar',
-                        isNullable: true,
-                    },
-                    {
-                        name: 'description',
-                        type: 'text',
-                        isNullable: true,
-                    },
+                        isUnique: true
+                    }
                 ],
             }),
             true,
@@ -51,6 +42,7 @@ export class CreateTableTasks1735663631891 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropTable(EntityEnum.TASK);
+        await queryRunner.dropTable(EntityEnum.CHURCH)
     }
+
 }

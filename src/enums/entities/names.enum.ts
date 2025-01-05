@@ -1,4 +1,6 @@
 export enum EntityEnum {
     USER = 'users',
-    TASK = 'tasks'
+    TASK = 'tasks',
+    CHURCH = 'churches',
+    SECTOR = 'sectors',
 }
