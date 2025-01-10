@@ -10,5 +10,5 @@ export class Church extends BaseEntity<Church> {
   name!: string;
 
   @OneToMany(() => Sector, (sector) => sector.church)
-  sectors!: Sector[]; // Relacionamento com setores
+  sectors!: Sector[];
 }

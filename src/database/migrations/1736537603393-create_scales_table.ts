@@ -1,13 +1,13 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 import { EntityEnum } from "../../enums";
 
-export class CreateSectorTable1736114101035 implements MigrationInterface {
+export class CreateScalesTable1736537603393 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
 
         await queryRunner.createTable(
             new Table({
-                name: EntityEnum.SECTOR,
+                name: EntityEnum.SCALE,
                 columns: [
                     {
                         name: 'id',
@@ -32,12 +32,12 @@ export class CreateSectorTable1736114101035 implements MigrationInterface {
                         isNullable: true
                     },
                     {
-                        name: 'name',
-                        type: 'varchar',
-                        isUnique: true
+                        name: 'date',
+                        type: 'timestamp',
+                        isNullable: true
                     },
                     {
-                        name: 'church_id',
+                        name: 'sector_id',
                         type: 'uuid',
                         isNullable: false
                     }
@@ -48,10 +48,10 @@ export class CreateSectorTable1736114101035 implements MigrationInterface {
 
 
         await queryRunner.createForeignKey(
-            EntityEnum.SECTOR,
+            EntityEnum.SCALE,
             new TableForeignKey({
-                columnNames: ['church_id'],
-                referencedTableName: EntityEnum.CHURCH,
+                columnNames: ['sector_id'],
+                referencedTableName: EntityEnum.SECTOR,
                 referencedColumnNames: ['id'],
                 onDelete: 'CASCADE',
                 onUpdate: 'CASCADE',
@@ -60,15 +60,14 @@ export class CreateSectorTable1736114101035 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const table = await queryRunner.getTable(EntityEnum.SECTOR);
-        const foreignKey = table?.foreignKeys.find(fk => fk.columnNames.includes('church_id'));
+        const table = await queryRunner.getTable(EntityEnum.SCALE);
+        const foreignKey = table?.foreignKeys.find(fk => fk.columnNames.includes('sector_id'));
         if (foreignKey) {
-            await queryRunner.dropForeignKey(EntityEnum.SECTOR, foreignKey);
+            await queryRunner.dropForeignKey(EntityEnum.SCALE, foreignKey);
         }
 
-        await queryRunner.dropColumn(EntityEnum.SECTOR, 'church_id');
+        await queryRunner.dropColumn(EntityEnum.SCALE, 'sector_id');
 
-        await queryRunner.dropTable(EntityEnum.SECTOR);
+        await queryRunner.dropTable(EntityEnum.SCALE);
     }
-
 }
