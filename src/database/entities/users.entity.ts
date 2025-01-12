@@ -1,8 +1,9 @@
-import { Column, Entity, JoinTable, ManyToMany, OneToMany, Unique } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne, Unique } from 'typeorm';
 import { BaseEntity } from './base';
 import { RoleEnum, EntityEnum } from '../../enums';
 import { Task } from './tasks.entity';
 import { Unavailability } from './unavailability.entity';
+import { Participant } from './participants.entity';
 
 @Entity(EntityEnum.USER)
 @Unique(['email'])
@@ -35,4 +36,7 @@ export class User extends BaseEntity<User> {
     },
   })
   tasks!: Task[];
+
+  @OneToOne(() => Participant, (participant) => participant.user)
+  participant!: Participant;
 }

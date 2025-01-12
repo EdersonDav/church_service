@@ -3,7 +3,7 @@ import { BaseEntity } from './base';
 import { EntityEnum } from '../../enums';
 import { Church } from './churches.entity';
 import { Task } from './tasks.entity';
-import { Scale } from './scale.entity';
+import { Scale } from './scales.entity';
 
 @Entity(EntityEnum.SECTOR)
 @Unique(['name'])
@@ -18,5 +18,5 @@ export class Sector extends BaseEntity<Sector> {
   tasks!: Task[];
 
   @OneToMany(() => Scale, (scale) => scale.sector)
-  scale!: Scale[];
+  scales!: Scale[];
 }

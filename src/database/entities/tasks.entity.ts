@@ -1,8 +1,9 @@
-import { Column, Entity, ManyToMany, ManyToOne, Unique } from 'typeorm';
+import { Column, Entity, ManyToMany, ManyToOne, OneToOne, Unique } from 'typeorm';
 import { BaseEntity } from './base';
 import { EntityEnum } from '../../enums';
 import { Sector } from './sectors.entity';
 import { User } from './users.entity';
+import { Participant } from './participants.entity';
 
 @Entity(EntityEnum.TASK)
 @Unique(['name'])
@@ -21,4 +22,7 @@ export class Task extends BaseEntity<Task> {
 
   @ManyToMany(() => User, (user) => user.tasks)
   users!: User[];
+
+  @OneToOne(() => Participant, (participant) => participant.task)
+  participant!: Participant;
 }

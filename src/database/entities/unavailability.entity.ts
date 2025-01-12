@@ -9,6 +9,6 @@ export class Unavailability extends BaseEntity<Unavailability> {
   @Column({ type: 'timestamp' })
   date!: Date;
 
-  @ManyToOne(() => User, (user) => user.unavailability, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.unavailability)
   user!: User;
 }
