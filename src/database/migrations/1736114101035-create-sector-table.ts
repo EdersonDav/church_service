@@ -38,7 +38,7 @@ export class CreateSectorTable1736114101035 implements MigrationInterface {
                     },
                     {
                         name: 'church_id',
-                        type: 'uuid',
+                        type: 'varchar',
                         isNullable: false
                     }
                 ],

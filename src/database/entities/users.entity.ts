@@ -23,6 +23,9 @@ export class User extends BaseEntity<User> {
   @OneToMany(() => Unavailability, (unavailability) => unavailability.user)
   unavailability!: Unavailability[];
 
+  @Column({ unique: true })
+  task_id!: string;
+
   @ManyToMany(() => Task, (task) => task.users)
   @JoinTable({
     name: EntityEnum.USER_TASK,

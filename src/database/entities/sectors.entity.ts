@@ -11,6 +11,9 @@ export class Sector extends BaseEntity<Sector> {
   @Column({ unique: true })
   name!: string;
 
+  @Column()
+  church_id!: string;
+
   @ManyToOne(() => Church, (church) => church.sectors, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   church!: Church;
 

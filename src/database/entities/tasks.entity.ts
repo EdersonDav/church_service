@@ -17,6 +17,9 @@ export class Task extends BaseEntity<Task> {
   @Column({ nullable: true })
   description?: string;
 
+  @Column()
+  sector_id!: string;
+
   @ManyToOne(() => Sector, (sector) => sector.tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   sector!: Sector;
 

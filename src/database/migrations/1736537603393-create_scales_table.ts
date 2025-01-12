@@ -38,7 +38,7 @@ export class CreateScalesTable1736537603393 implements MigrationInterface {
                     },
                     {
                         name: 'sector_id',
-                        type: 'uuid',
+                        type: 'varchar',
                         isNullable: false
                     }
                 ],

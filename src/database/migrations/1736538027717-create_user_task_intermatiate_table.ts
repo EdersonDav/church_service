@@ -10,7 +10,7 @@ export class CreateUserTaskIntermatiateTable1736538027717 implements MigrationIn
                 columns: [
                     {
                         name: 'id',
-                        type: 'uuid',
+                        type: 'varchar',
                         generationStrategy: 'uuid',
                         isUnique: true
                     },
@@ -31,12 +31,12 @@ export class CreateUserTaskIntermatiateTable1736538027717 implements MigrationIn
                     },
                     {
                         name: "task_id",
-                        type: "uuid",
+                        type: "varchar",
                         isPrimary: true,
                     },
                     {
                         name: "user_id",
-                        type: "uuid",
+                        type: "varchar",
                         isPrimary: true,
                     }
                 ],

@@ -10,6 +10,9 @@ export class Scale extends BaseEntity<Scale> {
   @Column({ type: 'timestamp' })
   date!: Date;
 
+  @Column({ unique: true })
+  sector_id!: string;
+
   @ManyToOne(() => Sector, (sector) => sector.scales)
   sector!: Sector;
 

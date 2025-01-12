@@ -9,6 +9,9 @@ export class Unavailability extends BaseEntity<Unavailability> {
   @Column({ type: 'timestamp' })
   date!: Date;
 
+  @Column({ unique: true })
+  user_id!: string;
+
   @ManyToOne(() => User, (user) => user.unavailability)
   user!: User;
 }

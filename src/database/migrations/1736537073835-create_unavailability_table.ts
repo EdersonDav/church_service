@@ -38,7 +38,7 @@ export class CreateUnavailabilityTable1736537073835 implements MigrationInterfac
                     },
                     {
                         name: 'user_id',
-                        type: 'uuid',
+                        type: 'varchar',
                         isNullable: false
                     }
                 ],

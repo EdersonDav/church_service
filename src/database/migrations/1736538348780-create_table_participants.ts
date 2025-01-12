@@ -10,7 +10,7 @@ export class CreateTableParticipants1736538348780 implements MigrationInterface 
                 columns: [
                     {
                         name: 'id',
-                        type: 'uuid',
+                        type: 'varchar',
                         generationStrategy: 'uuid',
                         isUnique: true
                     },
@@ -31,17 +31,17 @@ export class CreateTableParticipants1736538348780 implements MigrationInterface 
                     },
                     {
                         name: "scale_id",
-                        type: "uuid",
+                        type: "varchar",
                         isPrimary: true,
                     },
                     {
                         name: "user_id",
-                        type: "uuid",
+                        type: "varchar",
                         isPrimary: true,
                     },
                     {
-                        name: "task",
-                        type: "uuid",
+                        name: "task_id",
+                        type: "varchar",
                         isPrimary: true,
                     }
                 ],
