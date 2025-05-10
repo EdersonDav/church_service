@@ -7,7 +7,7 @@ import { Participant } from './participants.entity';
 
 @Entity(EntityEnum.USER)
 @Unique(['email'])
-export class User extends BaseEntity<User> {
+export class User extends BaseEntity {
   @Column({ unique: true })
   email!: string;
 

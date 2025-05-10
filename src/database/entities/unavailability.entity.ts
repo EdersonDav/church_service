@@ -5,7 +5,7 @@ import { User } from './users.entity';
 
 @Entity(EntityEnum.UNAVAILABILITY)
 @Unique(['user_id', 'date'])
-export class Unavailability extends BaseEntity<Unavailability> {
+export class Unavailability extends BaseEntity {
   @Column({ type: 'timestamp' })
   date!: Date;
 

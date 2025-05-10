@@ -6,7 +6,7 @@ import { Participant } from './participants.entity';
 
 @Entity(EntityEnum.SCALE)
 @Unique(['sector_id', 'date'])
-export class Scale extends BaseEntity<Scale> {
+export class Scale extends BaseEntity {
   @Column({ type: 'timestamp' })
   date!: Date;
 

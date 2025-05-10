@@ -1,3 +1,4 @@
+import { UUID } from 'crypto';
 import {
   CreateDateColumn,
   DeleteDateColumn,
@@ -5,9 +6,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export class BaseEntity<Entity> {
+export class BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  id!: UUID;
 
   @CreateDateColumn()
   created_at?: Date;

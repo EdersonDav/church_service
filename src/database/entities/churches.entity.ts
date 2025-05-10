@@ -5,7 +5,7 @@ import { Sector } from './sectors.entity';
 
 @Entity(EntityEnum.CHURCH)
 @Unique(['name'])
-export class Church extends BaseEntity<Church> {
+export class Church extends BaseEntity {
   @Column({ unique: true })
   name!: string;
 

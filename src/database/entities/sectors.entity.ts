@@ -7,7 +7,7 @@ import { Scale } from './scales.entity';
 
 @Entity(EntityEnum.SECTOR)
 @Unique(['name'])
-export class Sector extends BaseEntity<Sector> {
+export class Sector extends BaseEntity {
   @Column({ unique: true })
   name!: string;
 

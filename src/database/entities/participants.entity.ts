@@ -7,7 +7,7 @@ import { Task } from './tasks.entity';
 
 @Entity(EntityEnum.PARTICIPANTS)
 @Unique(['scale_id', 'user_id', 'task_id'])
-export class Participant extends BaseEntity<Participant> {
+export class Participant extends BaseEntity {
   @Column()
   task_id!: string;
 

@@ -16,8 +16,8 @@ export class TaskService implements TaskRepository {
     private readonly entity: TypeORMRepository<Task>
   ) { }
 
-  async save(Task: Partial<Task>): Promise<Task> {
-    const taskCreated = this.entity.create(Task);
+  async save(task: Partial<Task>): Promise<Task> {
+    const taskCreated = this.entity.create(task);
     await this.entity.upsert(taskCreated, this.onConfliteConfig);
     return taskCreated;
   }

@@ -1,7 +1,14 @@
 import { Module } from '@nestjs/common';
-import { TaskRepository, UserRepository } from './repositories/interfaces';
-import { FakeUserRepository } from './repositories/fakes';
-import { FakeTaskRepository } from './repositories/fakes/task.repository';
+import { 
+  TaskRepository, 
+  UserRepository,
+  ChurchRepository
+ } from './repositories/interfaces';
+import { 
+  FakeUserRepository, 
+  FakeTaskRepository,
+  FakeChurchRepository
+} from './repositories/fakes';
 
 @Module({
   providers: [
@@ -14,13 +21,20 @@ import { FakeTaskRepository } from './repositories/fakes/task.repository';
     {
       provide: TaskRepository,
       useClass: FakeTaskRepository,
+    },
+    FakeChurchRepository,
+    {
+      provide: ChurchRepository,
+      useClass: FakeChurchRepository,
     }
   ],
   exports: [
     UserRepository,
     FakeUserRepository,
     FakeTaskRepository,
-    TaskRepository
+    TaskRepository,
+    ChurchRepository,
+    FakeChurchRepository
   ],
 })
 export class MockDatabaseModule { }
