@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateToken } from './use-case';
 import { Input } from './input';
-import { RoleEnum } from '../../../../enums';
 import { faker } from '@faker-js/faker';
 import { JwtService } from '@nestjs/jwt';
 import { MockAuthModule } from '../mock.module';

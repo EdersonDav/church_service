@@ -22,12 +22,12 @@ export class LoginController {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const { email, name, role } = data;
-    const { access_token } = await this.createToken.execute({ email, name, role });
+    const { email, name } = data;
+    const { access_token } = await this.createToken.execute({ email, name });
 
     res.setHeader('Authorization', `Bearer ${access_token}`);
 
-    return res.status(200).send({ data: { email, name, role } });
+    return res.status(200).send({ data: { email, name } });
 
   }
 }

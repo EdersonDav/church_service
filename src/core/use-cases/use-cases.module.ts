@@ -3,8 +3,9 @@ import { AuthModule } from './auth';
 import { DataBaseModule } from '../../database';
 import { TaskModule } from './tasks';
 import { ChurchModule } from './church';
+import { UserModule } from './user';
 
-const modules = [AuthModule, TaskModule, ChurchModule];
+const modules = [AuthModule, TaskModule, ChurchModule, UserModule];
 
 @Module({
   imports: [...modules, DataBaseModule],

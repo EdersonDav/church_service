@@ -14,7 +14,6 @@ export class ValidateUser {
       const data = {
         email: user.email,
         name: user.name,
-        role: user.role
       }
       return { data };
     }
