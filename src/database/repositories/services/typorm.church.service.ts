@@ -10,6 +10,7 @@ export class ChurchService implements ChurchRepository {
     conflictPaths: ['name'],
     skipUpdateIfNoValuesChanged: true,
     upsertType: 'on-conflict-do-update',
+    returning: true,
   }
   constructor(
     @InjectRepository(Church)
@@ -18,7 +19,8 @@ export class ChurchService implements ChurchRepository {
 
   async save(church: Partial<Church>): Promise<Church> {
     const churchCreated = this.entity.create(church);
-    await this.entity.upsert(churchCreated, this.onConfliteConfig);
+    const a = await this.entity.upsert(churchCreated, this.onConfliteConfig);
+    console.log(a)
     return churchCreated;
   }
 }

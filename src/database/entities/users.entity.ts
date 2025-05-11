@@ -4,6 +4,7 @@ import { RoleEnum, EntityEnum } from '../../enums';
 import { Task } from './tasks.entity';
 import { Unavailability } from './unavailability.entity';
 import { Participant } from './participants.entity';
+import { Church } from './churches.entity';
 
 @Entity(EntityEnum.USER)
 @Unique(['email'])
@@ -42,4 +43,7 @@ export class User extends BaseEntity {
 
   @OneToOne(() => Participant, (participant) => participant.user)
   participant!: Participant;
+
+  @OneToMany(() => Church, (churches) => churches.user)
+  churches?: Church[];
 }
