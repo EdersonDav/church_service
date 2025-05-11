@@ -42,5 +42,4 @@ export class User extends BaseEntity {
 
   @OneToOne(() => Participant, (participant) => participant.user)
   participant!: Participant;
-  
 }

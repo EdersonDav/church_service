@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, Unique } from 'typeorm';
+import { Column, Entity, OneToMany, Unique } from 'typeorm';
 import { BaseEntity } from './base';
 import { EntityEnum } from '../../enums';
 import { Sector } from './sectors.entity';
