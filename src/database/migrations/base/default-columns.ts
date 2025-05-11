@@ -8,9 +8,12 @@ export class DefaultColumns {
         columns: [
           {
             name: 'id',
-            type: 'varchar',
+            type: 'uuid',
             isPrimary: true,
             generationStrategy: 'uuid',
+            isUnique: true,
+            default: 'uuid_generate_v4()', 
+            isGenerated: true,
           },
           {
             name: 'created_at',
@@ -20,11 +23,7 @@ export class DefaultColumns {
           {
             name: 'updated_at',
             type: 'timestamp',
-          },
-          {
-            name: 'deleted_at',
-            type: 'timestamp',
-          },
+          }
         ],
       }),
       true,
