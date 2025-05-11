@@ -18,8 +18,8 @@ export class Sector extends BaseEntity {
   church!: Church;
 
   @OneToMany(() => Task, (task) => task.sector)
-  tasks!: Task[];
+  tasks?: Task[];
 
   @OneToMany(() => Scale, (scale) => scale.sector)
-  scales!: Scale[];
+  scales?: Scale[];
 }

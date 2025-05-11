@@ -11,10 +11,12 @@ export class CreateScalesTable1736537603393 implements MigrationInterface {
                 columns: [
                     {
                         name: 'id',
-                        type: 'varchar',
+                        type: 'uuid',
                         isPrimary: true,
                         generationStrategy: 'uuid',
-                        isUnique: true
+                        isUnique: true,
+                        default: 'uuid_generate_v4()', 
+                        isGenerated: true,
                     },
                     {
                         name: 'created_at',
@@ -38,7 +40,7 @@ export class CreateScalesTable1736537603393 implements MigrationInterface {
                     },
                     {
                         name: 'sector_id',
-                        type: 'varchar',
+                        type: 'uuid',
                         isNullable: false
                     }
                 ],

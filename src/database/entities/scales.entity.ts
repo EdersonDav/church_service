@@ -17,5 +17,5 @@ export class Scale extends BaseEntity {
   sector!: Sector;
 
   @OneToMany(() => Participant, (participant) => participant.scale)
-  participants!: Participant[];
+  participants?: Participant[];
 }

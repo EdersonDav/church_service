@@ -1,4 +1,4 @@
-import { Expose, Type } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TaskResponseData {
@@ -13,11 +13,4 @@ export class TaskResponseData {
     @Expose()
     @ApiProperty({ example: 'The task description if necessary', description: 'Task description' })
     description?: string;
-}
-
-export class UserResponse {
-    @ApiProperty({ description: 'Data task response' })
-    @Expose()
-    @Type(() => TaskResponseData)
-    data!: TaskResponseData;
 }

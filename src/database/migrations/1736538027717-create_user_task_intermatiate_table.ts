@@ -10,9 +10,12 @@ export class CreateUserTaskIntermatiateTable1736538027717 implements MigrationIn
                 columns: [
                     {
                         name: 'id',
-                        type: 'varchar',
+                        type: 'uuid',
+                        isPrimary: true,
                         generationStrategy: 'uuid',
-                        isUnique: true
+                        isUnique: true,
+                        default: 'uuid_generate_v4()', 
+                        isGenerated: true,
                     },
                     {
                         name: 'created_at',
@@ -31,12 +34,12 @@ export class CreateUserTaskIntermatiateTable1736538027717 implements MigrationIn
                     },
                     {
                         name: "task_id",
-                        type: "varchar",
+                        type: "uuid",
                         isPrimary: true,
                     },
                     {
                         name: "user_id",
-                        type: "varchar",
+                        type: "uuid",
                         isPrimary: true,
                     }
                 ],

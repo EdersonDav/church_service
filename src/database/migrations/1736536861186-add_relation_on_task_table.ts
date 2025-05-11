@@ -8,7 +8,7 @@ export class AddRelationOnTaskTable1736536861186 implements MigrationInterface {
             EntityEnum.TASK,
             new TableColumn({
                 name: 'sector_id',
-                type: 'varchar',
+                type: 'uuid',
                 isNullable: false
             })
         )

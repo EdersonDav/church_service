@@ -3,8 +3,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from '../config';
 import { UserService, TaskService, ChurchService } from './repositories/services';
 import { TaskRepository, UserRepository, ChurchRepository } from './repositories/interfaces';
-import { Task, User, Church } from './entities';
+import { Task, User, Church, Participant, Scale, Sector, Unavailability } from './entities';
 
+const entities = [
+  User,
+  Task,
+  Church,
+  Participant,
+  Scale,
+  Sector,
+  Unavailability
+];
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -12,12 +21,12 @@ import { Task, User, Church } from './entities';
       host: env.db.HOST,
       port: env.db.PORT,
       database: env.db.NAME,
-      entities: [User, Task, Church],
+      entities: entities,
       password: env.db.PASSWORD,
       username: env.db.USER,
-      synchronize: true,
+      synchronize: false,
     }),
-    TypeOrmModule.forFeature([User, Task, Church]),
+    TypeOrmModule.forFeature(entities),
   ],
   providers: [
     UserService,

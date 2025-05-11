@@ -11,10 +11,12 @@ export class CreateSectorTable1736114101035 implements MigrationInterface {
                 columns: [
                     {
                         name: 'id',
-                        type: 'varchar',
+                        type: 'uuid',
                         isPrimary: true,
                         generationStrategy: 'uuid',
-                        isUnique: true
+                        isUnique: true,
+                        default: 'uuid_generate_v4()', 
+                        isGenerated: true,
                     },
                     {
                         name: 'created_at',
@@ -38,7 +40,7 @@ export class CreateSectorTable1736114101035 implements MigrationInterface {
                     },
                     {
                         name: 'church_id',
-                        type: 'varchar',
+                        type: 'uuid',
                         isNullable: false
                     }
                 ],

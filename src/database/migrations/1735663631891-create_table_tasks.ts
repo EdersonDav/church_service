@@ -9,10 +9,12 @@ export class CreateTableTasks1735663631891 implements MigrationInterface {
                 columns: [
                     {
                         name: 'id',
-                        type: 'varchar',
+                        type: 'uuid',
                         isPrimary: true,
                         generationStrategy: 'uuid',
                         isUnique: true,
+                        default: 'uuid_generate_v4()', 
+                        isGenerated: true,
                     },
                     {
                         name: 'created_at',

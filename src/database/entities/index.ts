@@ -1,3 +1,7 @@
 export * from './users.entity'
 export * from './tasks.entity'
 export * from './churches.entity'
+export * from './scales.entity'
+export * from './sectors.entity'
+export * from './participants.entity'
+export * from './unavailability.entity'

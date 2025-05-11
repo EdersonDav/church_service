@@ -1,7 +1,7 @@
 import { Body, Controller, Post, BadRequestException } from '@nestjs/common';
 import { CreateTask } from '../../../../core/use-cases/tasks';
-import { TaskBody } from '../dtos/tasks/query';
-import { TaskResponseData } from '../dtos/tasks/response';
+import { TaskBody } from '../../dtos/tasks/query';
+import { TaskResponseData } from '../../dtos/tasks/response';
 
 @Controller('tasks')
 export class TaskController {

@@ -1,6 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { RoleEnum } from '../../../../../enums';
+import { RoleEnum } from '../../../../enums';
 import { IsEnum } from 'class-validator';
 
 export class UserResponseData {
