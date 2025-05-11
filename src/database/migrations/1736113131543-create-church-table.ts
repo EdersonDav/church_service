@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
+import { MigrationInterface, QueryRunner, Table } from "typeorm";
 import { EntityEnum } from "../../enums";
 
 export class CreateChurchTable1736113131543 implements MigrationInterface {
@@ -31,33 +31,15 @@ export class CreateChurchTable1736113131543 implements MigrationInterface {
                         name: 'name',
                         type: 'varchar',
                         isUnique: true
-                    },
-                    {
-                        name: 'user_id',
-                        type: 'uuid',
-                        isNullable: false
                     }
                 ],
             }),
             true,
         );
 
-        await queryRunner.createForeignKey(
-            EntityEnum.CHURCH,
-            new TableForeignKey({
-                name: 'FK_User_Church',
-                columnNames: ['user_id'],
-                referencedTableName: EntityEnum.USER,
-                referencedColumnNames: ['id'],
-                onDelete: 'CASCADE',
-                onUpdate: 'CASCADE',
-            }),
-        );
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropForeignKey(EntityEnum.SECTOR, 'FK_User_Church');
-        await queryRunner.dropColumn(EntityEnum.SECTOR, 'user_id');
         await queryRunner.dropTable(EntityEnum.CHURCH)
     }
 

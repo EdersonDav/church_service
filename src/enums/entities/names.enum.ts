@@ -6,5 +6,6 @@ export enum EntityEnum {
     UNAVAILABILITY = 'unavailability',
     SCALE = 'scales',
     USER_TASK = 'users_tasks',
-    PARTICIPANTS = 'participants'
+    PARTICIPANTS = 'participants',
+    USER_CHURCH = 'user_church',
 }
