@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository as TypeORMRepository } from 'typeorm';
 import { User } from '../../entities';
 import { UserRepository } from '../interfaces';
+import { encodePass } from '../../../core/helpers';
 
 @Injectable()
 export class UserService implements UserRepository {
@@ -16,8 +17,8 @@ export class UserService implements UserRepository {
     return userFound
   }
 
-  async save(user: Partial<User>): Promise<User> {
-    const userCreated = this.entity.create(user);
+  async save(user: User): Promise<User> {
+    const userCreated = this.entity.create({...user, password: encodePass(user.password)});
     await this.entity.save(userCreated);
     return userCreated;
   }

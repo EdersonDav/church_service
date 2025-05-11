@@ -10,7 +10,6 @@ import { MockAuthModule } from '../mock.module';
 import { UserRepository } from '../../../../database/repositories/interfaces';
 import { User } from '../../../../database/entities';
 import { encodePass } from '../../../helpers';
-import { RoleEnum } from '../../../../enums';
 
 describe('# Validate User', () => {
     let use_case: ValidateUser;
@@ -32,7 +31,6 @@ describe('# Validate User', () => {
         id: randomUUID(),
         email,
         password: passEncoded,
-        role: RoleEnum.VOLUNTARY,
         name: faker.person.firstName()
     } as User;
 
@@ -43,8 +41,7 @@ describe('# Validate User', () => {
 
     const dataResult = {
         email: user.email,
-        name: user.name,
-        role: user.role
+        name: user.name
     }
 
     it.each([

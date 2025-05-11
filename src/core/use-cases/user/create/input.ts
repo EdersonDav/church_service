@@ -1,4 +1,5 @@
 export class Input {
-    email!: string
+    name!: string;
+    email!: string;
     password!: string;
 }

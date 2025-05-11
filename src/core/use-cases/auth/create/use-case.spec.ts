@@ -22,8 +22,7 @@ describe('# Create Token', () => {
 
     const input: Input = {
         email: faker.internet.email(),
-        name: faker.person.firstName(),
-        role: RoleEnum.VOLUNTARY,
+        name: faker.person.firstName()
     };
     const access_token = randomUUID();
 

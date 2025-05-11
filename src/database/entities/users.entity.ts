@@ -14,9 +14,6 @@ export class User extends BaseEntity {
   @Column()
   password!: string;
 
-  @Column({ type: 'enum', enum: RoleEnum, default: RoleEnum.VOLUNTARY, enumName: 'RoleEnum' })
-  role!: RoleEnum;
-
   @Column()
   name!: string;
 
