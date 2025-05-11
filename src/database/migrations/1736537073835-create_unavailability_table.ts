@@ -29,11 +29,6 @@ export class CreateUnavailabilityTable1736537073835 implements MigrationInterfac
                         default: 'now()',
                     },
                     {
-                        name: 'deleted_at',
-                        type: 'timestamp',
-                        isNullable: true
-                    },
-                    {
                         name: 'date',
                         type: 'timestamp',
                         isNullable: false
@@ -52,6 +47,7 @@ export class CreateUnavailabilityTable1736537073835 implements MigrationInterfac
         await queryRunner.createForeignKey(
             EntityEnum.UNAVAILABILITY,
             new TableForeignKey({
+                name: 'FK_Unavailability_User',
                 columnNames: ['user_id'],
                 referencedTableName: EntityEnum.USER,
                 referencedColumnNames: ['id'],
@@ -62,11 +58,7 @@ export class CreateUnavailabilityTable1736537073835 implements MigrationInterfac
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const table = await queryRunner.getTable(EntityEnum.UNAVAILABILITY);
-        const foreignKey = table?.foreignKeys.find(fk => fk.columnNames.includes('user_id'));
-        if (foreignKey) {
-            await queryRunner.dropForeignKey(EntityEnum.UNAVAILABILITY, foreignKey);
-        }
+        await queryRunner.dropForeignKey(EntityEnum.UNAVAILABILITY, 'FK_Unavailability_User');
 
         await queryRunner.dropColumn(EntityEnum.UNAVAILABILITY, 'user_id');
 

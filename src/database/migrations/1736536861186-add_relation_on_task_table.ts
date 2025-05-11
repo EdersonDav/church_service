@@ -15,6 +15,7 @@ export class AddRelationOnTaskTable1736536861186 implements MigrationInterface {
         await queryRunner.createForeignKey(
             EntityEnum.TASK,
             new TableForeignKey({
+                name: 'FK_Task_Sector',
                 columnNames: ['sector_id'],
                 referencedTableName: EntityEnum.SECTOR,
                 referencedColumnNames: ['id'],
@@ -25,13 +26,9 @@ export class AddRelationOnTaskTable1736536861186 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const table = await queryRunner.getTable(EntityEnum.TASK);
-        const foreignKey = table?.foreignKeys.find(fk => fk.columnNames.includes('sector_id'));
-        if (foreignKey) {
-            await queryRunner.dropForeignKey(EntityEnum.SECTOR, foreignKey);
-        }
+        await queryRunner.dropForeignKey(EntityEnum.TASK, 'FK_Task_Sector');
 
-        await queryRunner.dropColumn(EntityEnum.SECTOR, 'sector_id');
+        await queryRunner.dropColumn(EntityEnum.TASK, 'sector_id');
     }
 
 }

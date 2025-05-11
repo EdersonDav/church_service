@@ -28,11 +28,6 @@ export class CreateUserTaskIntermatiateTable1736538027717 implements MigrationIn
                         default: 'now()',
                     },
                     {
-                        name: 'deleted_at',
-                        type: 'timestamp',
-                        isNullable: true
-                    },
-                    {
                         name: "task_id",
                         type: "uuid",
                         isPrimary: true,
@@ -49,6 +44,7 @@ export class CreateUserTaskIntermatiateTable1736538027717 implements MigrationIn
         await queryRunner.createForeignKey(
             EntityEnum.USER_TASK,
             new TableForeignKey({
+                name: "FK_User_Task_User",
                 columnNames: ["user_id"],
                 referencedColumnNames: ["id"],
                 referencedTableName: EntityEnum.USER,
@@ -59,6 +55,7 @@ export class CreateUserTaskIntermatiateTable1736538027717 implements MigrationIn
         await queryRunner.createForeignKey(
             EntityEnum.USER_TASK,
             new TableForeignKey({
+                name: "FK_User_Task_Task",
                 columnNames: ["task_id"],
                 referencedColumnNames: ["id"],
                 referencedTableName: EntityEnum.TASK,
@@ -68,12 +65,8 @@ export class CreateUserTaskIntermatiateTable1736538027717 implements MigrationIn
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const table = await queryRunner.getTable(EntityEnum.USER_TASK);
-        const userForeignKey = table?.foreignKeys.find(fk => fk.columnNames.indexOf("user_id") !== -1);
-        const taskForeignKey = table?.foreignKeys.find(fk => fk.columnNames.indexOf("task_id") !== -1);
-        if (userForeignKey) await queryRunner.dropForeignKey(EntityEnum.USER_TASK, userForeignKey);
-        if (taskForeignKey) await queryRunner.dropForeignKey(EntityEnum.USER_TASK, taskForeignKey);
-
+        await queryRunner.dropForeignKey(EntityEnum.USER_TASK, "FK_User_Task_User");
+        await queryRunner.dropForeignKey(EntityEnum.USER_TASK, "FK_User_Task_Task");
         await queryRunner.dropTable(EntityEnum.USER_TASK);
     }
 }

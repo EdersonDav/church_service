@@ -28,11 +28,6 @@ export class CreateChurchTable1736113131543 implements MigrationInterface {
                         default: 'now()',
                     },
                     {
-                        name: 'deleted_at',
-                        type: 'timestamp',
-                        isNullable: true
-                    },
-                    {
                         name: 'name',
                         type: 'varchar',
                         isUnique: true

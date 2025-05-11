@@ -28,11 +28,6 @@ export class CreateTableParticipants1736538348780 implements MigrationInterface 
                         default: 'now()',
                     },
                     {
-                        name: 'deleted_at',
-                        type: 'timestamp',
-                        isNullable: true
-                    },
-                    {
                         name: "scale_id",
                         type: "uuid",
                         isPrimary: true,
@@ -54,6 +49,7 @@ export class CreateTableParticipants1736538348780 implements MigrationInterface 
         await queryRunner.createForeignKey(
             EntityEnum.PARTICIPANTS,
             new TableForeignKey({
+                name: "FK_Participants_User",
                 columnNames: ["user_id"],
                 referencedColumnNames: ["id"],
                 referencedTableName: EntityEnum.USER,
@@ -64,6 +60,7 @@ export class CreateTableParticipants1736538348780 implements MigrationInterface 
         await queryRunner.createForeignKey(
             EntityEnum.PARTICIPANTS,
             new TableForeignKey({
+                name: "FK_Participants_User_Task",
                 columnNames: ["task_id"],
                 referencedColumnNames: ["id"],
                 referencedTableName: EntityEnum.TASK,
@@ -74,6 +71,7 @@ export class CreateTableParticipants1736538348780 implements MigrationInterface 
         await queryRunner.createForeignKey(
             EntityEnum.PARTICIPANTS,
             new TableForeignKey({
+                name: "FK_Participants_Scale",
                 columnNames: ["scale_id"],
                 referencedColumnNames: ["id"],
                 referencedTableName: EntityEnum.SCALE,
@@ -83,14 +81,9 @@ export class CreateTableParticipants1736538348780 implements MigrationInterface 
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const table = await queryRunner.getTable(EntityEnum.PARTICIPANTS);
-        const userForeignKey = table?.foreignKeys.find(fk => fk.columnNames.indexOf("user_id") !== -1);
-        const scaleForeignKey = table?.foreignKeys.find(fk => fk.columnNames.indexOf("scale_id") !== -1);
-        const taskForeignKey = table?.foreignKeys.find(fk => fk.columnNames.indexOf("task_id") !== -1);
-        if (userForeignKey) await queryRunner.dropForeignKey(EntityEnum.PARTICIPANTS, userForeignKey);
-        if (scaleForeignKey) await queryRunner.dropForeignKey(EntityEnum.PARTICIPANTS, scaleForeignKey);
-        if (taskForeignKey) await queryRunner.dropForeignKey(EntityEnum.PARTICIPANTS, taskForeignKey);
-
+        await queryRunner.dropForeignKey(EntityEnum.PARTICIPANTS, "FK_Participants_User");
+        await queryRunner.dropForeignKey(EntityEnum.PARTICIPANTS, "FK_Participants_User_Task");
+        await queryRunner.dropForeignKey(EntityEnum.PARTICIPANTS, "FK_Participants_Scale");
         await queryRunner.dropTable(EntityEnum.PARTICIPANTS);
     }
 

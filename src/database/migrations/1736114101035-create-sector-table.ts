@@ -29,11 +29,6 @@ export class CreateSectorTable1736114101035 implements MigrationInterface {
                         default: 'now()',
                     },
                     {
-                        name: 'deleted_at',
-                        type: 'timestamp',
-                        isNullable: true
-                    },
-                    {
                         name: 'name',
                         type: 'varchar',
                         isUnique: true
@@ -52,6 +47,7 @@ export class CreateSectorTable1736114101035 implements MigrationInterface {
         await queryRunner.createForeignKey(
             EntityEnum.SECTOR,
             new TableForeignKey({
+                name: 'FK_Sector_Church',
                 columnNames: ['church_id'],
                 referencedTableName: EntityEnum.CHURCH,
                 referencedColumnNames: ['id'],
@@ -62,11 +58,7 @@ export class CreateSectorTable1736114101035 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const table = await queryRunner.getTable(EntityEnum.SECTOR);
-        const foreignKey = table?.foreignKeys.find(fk => fk.columnNames.includes('church_id'));
-        if (foreignKey) {
-            await queryRunner.dropForeignKey(EntityEnum.SECTOR, foreignKey);
-        }
+        await queryRunner.dropForeignKey(EntityEnum.SECTOR, 'FK_Sector_Church');
 
         await queryRunner.dropColumn(EntityEnum.SECTOR, 'church_id');
 

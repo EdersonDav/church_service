@@ -29,11 +29,6 @@ export class CreateScalesTable1736537603393 implements MigrationInterface {
                         default: 'now()',
                     },
                     {
-                        name: 'deleted_at',
-                        type: 'timestamp',
-                        isNullable: true
-                    },
-                    {
                         name: 'date',
                         type: 'timestamp',
                         isNullable: true
@@ -52,6 +47,7 @@ export class CreateScalesTable1736537603393 implements MigrationInterface {
         await queryRunner.createForeignKey(
             EntityEnum.SCALE,
             new TableForeignKey({
+                name: 'FK_Scale_Sector',
                 columnNames: ['sector_id'],
                 referencedTableName: EntityEnum.SECTOR,
                 referencedColumnNames: ['id'],
@@ -62,11 +58,7 @@ export class CreateScalesTable1736537603393 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const table = await queryRunner.getTable(EntityEnum.SCALE);
-        const foreignKey = table?.foreignKeys.find(fk => fk.columnNames.includes('sector_id'));
-        if (foreignKey) {
-            await queryRunner.dropForeignKey(EntityEnum.SCALE, foreignKey);
-        }
+        await queryRunner.dropForeignKey(EntityEnum.SCALE, 'FK_Scale_Sector');
 
         await queryRunner.dropColumn(EntityEnum.SCALE, 'sector_id');
 

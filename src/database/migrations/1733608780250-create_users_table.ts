@@ -33,11 +33,6 @@ export class CreateUserTable1733608780250 implements MigrationInterface {
                         default: 'now()',
                     },
                     {
-                        name: 'deleted_at',
-                        type: 'timestamp',
-                        isNullable: true
-                    },
-                    {
                         name: 'email',
                         type: 'varchar',
                         isUnique: true
