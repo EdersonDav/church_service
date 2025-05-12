@@ -2,8 +2,7 @@ import { Body, Controller, Post, UnauthorizedException, Res } from '@nestjs/comm
 import { Response } from 'express';
 import { CreateToken } from '../../../../core/use-cases/auth/create';
 import { ValidateUser } from '../../../../core/use-cases/auth/validate';
-import { LoginBody } from '../../dtos/login/query';
-import { UserResponse } from '../../dtos/login/response';
+import { LoginBody, LoginResponse } from '../../dtos';
 
 @Controller()
 export class LoginController {
@@ -16,7 +15,7 @@ export class LoginController {
   async login(
     @Body() body: LoginBody,
     @Res() res: Response
-  ): Promise<Response<UserResponse>> {
+  ): Promise<Response<LoginResponse>> {
     const { data } = await this.validateUser.execute({ email: body.email, password: body.password });
     if (!data) {
       throw new UnauthorizedException('Credenciais inválidas');

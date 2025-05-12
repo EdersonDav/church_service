@@ -1,7 +1,6 @@
 import { Body, Controller, Post, BadRequestException } from '@nestjs/common';
 import { CreateTask } from '../../../../core/use-cases/tasks';
-import { TaskBody } from '../../dtos/tasks/query';
-import { TaskResponseData } from '../../dtos/tasks/response';
+import { CreateTaskBody, CreateTaskResponseData } from '../../dtos/tasks';
 
 @Controller('tasks')
 export class TaskController {
@@ -11,8 +10,8 @@ export class TaskController {
 
   @Post('')
   async task(
-    @Body() body: TaskBody
-  ): Promise<TaskResponseData> {
+    @Body() body: CreateTaskBody
+  ): Promise<CreateTaskResponseData> {
     if (!body.name) {
       throw new BadRequestException('Name is necessary');
     }

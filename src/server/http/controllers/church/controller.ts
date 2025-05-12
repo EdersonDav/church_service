@@ -1,6 +1,6 @@
 import { Body, Controller, Post, BadRequestException } from '@nestjs/common';
 import { CreateChurch } from '../../../../core/use-cases/church';
-import { ChurchResponseData, ChurchBody } from '../../dtos/church';
+import { CreateChurchResponseData, CreateChurchBody } from '../../dtos';
 
 @Controller('churches')
 export class ChurchController {
@@ -10,8 +10,8 @@ export class ChurchController {
 
   @Post('')
   async task(
-    @Body() body: ChurchBody
-  ): Promise<ChurchResponseData> {
+    @Body() body: CreateChurchBody
+  ): Promise<CreateChurchResponseData> {
     if (!body.name) {
       throw new BadRequestException('Name is necessary');
     }

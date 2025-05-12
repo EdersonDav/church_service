@@ -1,7 +1,7 @@
 import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class TaskResponseData {
+export class CreateTaskResponseData {
     @Expose()
     @ApiProperty({ example: 'octocat', description: 'Task Name' })
     name!: string;
