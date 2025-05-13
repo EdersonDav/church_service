@@ -23,9 +23,6 @@ export class Task extends BaseEntity {
   @ManyToOne(() => Sector, (sector) => sector.tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   sector!: Sector;
 
-  @ManyToMany(() => User, (user) => user.tasks)
-  users!: User[];
-
   @OneToOne(() => Participant, (participant) => participant.task)
   participant!: Participant;
 }

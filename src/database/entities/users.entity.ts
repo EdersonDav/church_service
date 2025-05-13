@@ -1,7 +1,6 @@
-import { Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne, Unique } from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne, Unique } from 'typeorm';
 import { BaseEntity } from './base';
-import { RoleEnum, EntityEnum } from '../../enums';
-import { Task } from './tasks.entity';
+import { EntityEnum } from '../../enums';
 import { Unavailability } from './unavailability.entity';
 import { Participant } from './participants.entity';
 
@@ -18,25 +17,8 @@ export class User extends BaseEntity {
   name!: string;
 
   @OneToMany(() => Unavailability, (unavailability) => unavailability.user)
-  unavailability!: Unavailability[];
-
-  @Column({ unique: true })
-  task_id!: string;
-
-  @ManyToMany(() => Task, (task) => task.users)
-  @JoinTable({
-    name: EntityEnum.USER_TASK,
-    joinColumn: {
-      name: "user_id",
-      referencedColumnName: "id",
-    },
-    inverseJoinColumn: {
-      name: "task_id",
-      referencedColumnName: "id",
-    },
-  })
-  tasks!: Task[];
+  unavailability?: Unavailability[];
 
   @OneToOne(() => Participant, (participant) => participant.user)
-  participant!: Participant;
+  participant?: Participant;
 }

@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from '../config';
 import { UserService, TaskService, ChurchService } from './repositories/services';
 import { TaskRepository, UserRepository, ChurchRepository } from './repositories/interfaces';
-import { Task, User, Church, Participant, Scale, Sector, Unavailability } from './entities';
+import { Task, User, Church, Participant, Scale, Sector, Unavailability, UserChurch, UserTask } from './entities';
 
 const entities = [
   User,
@@ -12,7 +12,9 @@ const entities = [
   Participant,
   Scale,
   Sector,
-  Unavailability
+  Unavailability,
+  UserChurch, 
+  UserTask
 ];
 @Module({
   imports: [
