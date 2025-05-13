@@ -3,13 +3,15 @@ import { CoreModule } from '../../../core/core.module';
 import { LoginController } from './login';
 import { TaskController } from './tasks';
 import { ChurchController } from './church';
+import { UserController } from './user';
 
 @Module({
   imports: [CoreModule],
   controllers: [
     LoginController,
     TaskController,
-    ChurchController
+    ChurchController,
+    UserController
   ],
 })
 export class ControllerModule { }
