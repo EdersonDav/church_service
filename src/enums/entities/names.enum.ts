@@ -8,4 +8,5 @@ export enum EntityEnum {
     USER_TASK = 'users_tasks',
     PARTICIPANTS = 'participants',
     USER_CHURCH = 'user_church',
+    VERIFICATION_CODE = 'verification_codes',
 }
