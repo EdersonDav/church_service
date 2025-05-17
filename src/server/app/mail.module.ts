@@ -20,7 +20,7 @@ import { env } from '../../config';
         from: env.mail.defaults.from,
       },
       template: {
-        dir: join(__dirname, '..', 'assets', 'templates'),
+        dir:  join(process.cwd(), 'assets', 'templates'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,

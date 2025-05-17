@@ -13,6 +13,10 @@ export class UserService implements UserRepository {
     private readonly entity: TypeORMRepository<User>,
   ) { }
 
+  async deleteByEmail(email: string): Promise<void> {
+    await this.entity.delete({ email });
+  }
+
   async getByEmail(email: string): Promise<User | null> {
     const userFound = await this.entity.findOne({ where: { email } })
     return userFound

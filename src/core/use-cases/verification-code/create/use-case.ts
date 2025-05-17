@@ -18,8 +18,7 @@ export class CreateVerificationCode {
     const verificationCode: Partial<VerificationCode> = {
       code: genCode(),
       user_id: input.user.id,
-      expires_at: genExpiredDate(),
-      user: input.user as User
+      expires_at: genExpiredDate()
     }
     const code = await this.repository.save(verificationCode);
 

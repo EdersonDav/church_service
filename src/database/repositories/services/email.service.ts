@@ -8,10 +8,12 @@ import { EmailRepository } from "../interfaces";
 export class EmailService implements EmailRepository{
     constructor(private readonly mailer: MailerService) {}
     async sendVerificationCode(email: string, code: string): Promise<SentMessageInfo> {
+        const templatePath = join(process.cwd(), 'assets', 'templates', 'verify');
+        console.log(templatePath);
         return this.mailer.sendMail({
             to: email,
             subject: 'Seu código de verificação',
-            template: join(__dirname, '..', '..', '..', 'assets', 'templates', 'verify'),
+            template: templatePath,
             context: { code },
         });
     }
