@@ -1,3 +1,4 @@
-export * from './typorm.user.service'
-export * from './typorm.task.service'
-export * from './typorm.church.service'
+export * from './user.service'
+export * from './task.service'
+export * from './church.service'
+export * from './verification-code.service'

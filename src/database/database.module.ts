@@ -1,9 +1,32 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from '../config';
-import { UserService, TaskService, ChurchService } from './repositories/services';
-import { TaskRepository, UserRepository, ChurchRepository } from './repositories/interfaces';
-import { Task, User, Church, Participant, Scale, Sector, Unavailability, UserChurch, UserTask } from './entities';
+import { 
+  UserService, 
+  TaskService, 
+  ChurchService,
+  VerificationCodeService
+} from './repositories/services';
+
+import { 
+  TaskRepository, 
+  UserRepository, 
+  ChurchRepository, 
+  VerificationCodeRepository
+} from './repositories/interfaces';
+
+import { 
+  Task, 
+  User, 
+  Church, 
+  Participant, 
+  Scale, 
+  Sector, 
+  Unavailability, 
+  UserChurch, 
+  UserTask,
+  VerificationCode
+} from './entities';
 
 const entities = [
   User,
@@ -14,7 +37,8 @@ const entities = [
   Sector,
   Unavailability,
   UserChurch, 
-  UserTask
+  UserTask,
+  VerificationCode
 ];
 @Module({
   imports: [
@@ -45,6 +69,11 @@ const entities = [
     {
       provide: ChurchRepository,
       useClass: ChurchService
+    },
+    VerificationCodeService,
+    {
+      provide: VerificationCodeRepository,
+      useClass: VerificationCode,
     }
   ],
   exports: [
@@ -53,7 +82,9 @@ const entities = [
     TaskRepository,
     TaskService,
     ChurchRepository,
-    ChurchService
+    ChurchService,
+    VerificationCodeRepository,
+    VerificationCodeService
   ],
 })
 export class DataBaseModule { }

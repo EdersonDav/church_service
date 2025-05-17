@@ -4,6 +4,7 @@ import { Repository as TypeORMRepository } from 'typeorm';
 import { User } from '../../entities';
 import { UserRepository } from '../interfaces';
 import { encodePass } from '../../../core/helpers';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class UserService implements UserRepository {
@@ -21,5 +22,12 @@ export class UserService implements UserRepository {
     const userCreated = this.entity.create({...user, password: encodePass(user.password)});
     await this.entity.save(userCreated);
     return userCreated;
+  }
+
+  async update(user_id: UUID, user_set: Partial<User>): Promise<boolean> {
+    const userFound = await this.entity.findOne({ where: { id: user_id } })
+    if (!userFound) throw new Error('User not found')
+    const userUpdated = await this.entity.update(userFound.id, user_set);
+    return Boolean(userUpdated.affected);
   }
 }
