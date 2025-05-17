@@ -32,7 +32,7 @@ describe('# Create User', () => {
     it.each([
         {
             run: true,
-            should: 'Should be able to create a task',
+            should: 'Should be able to create a user',
             input: () => input,
             setup: () => {
                 repository.save.mockResolvedValueOnce(input);

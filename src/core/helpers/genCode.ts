@@ -1,0 +1,1 @@
+export const genCode = (min = 111111, max = 999999) => String(Math.ceil(Math.random() * (max - min) + min))

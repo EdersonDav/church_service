@@ -1,0 +1,1 @@
+export const genExpiredDate = () => new Date(new Date().getTime() + 1000 * 60 * 10)
