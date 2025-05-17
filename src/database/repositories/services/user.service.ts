@@ -20,8 +20,8 @@ export class UserService implements UserRepository {
 
   async save(user: User): Promise<User> {
     const userCreated = this.entity.create({...user, password: encodePass(user.password)});
-    await this.entity.save(userCreated);
-    return userCreated;
+    const userSaved = await this.entity.save(userCreated);
+    return userSaved;
   }
 
   async update(user_id: UUID, user_set: Partial<User>): Promise<boolean> {

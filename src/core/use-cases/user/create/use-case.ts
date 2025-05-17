@@ -11,10 +11,7 @@ export class CreateUser {
   async execute(input: Input): Promise<Output> {
     const data = await this.userRepository.save(input);
     return {
-      data: {
-        name: data.name,
-        email: data?.email
-      }
+      data
     }
   }
 }

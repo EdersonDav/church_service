@@ -5,14 +5,16 @@ import {
   UserService, 
   TaskService, 
   ChurchService,
-  VerificationCodeService
+  VerificationCodeService,
+  EmailService
 } from './repositories/services';
 
 import { 
   TaskRepository, 
   UserRepository, 
   ChurchRepository, 
-  VerificationCodeRepository
+  VerificationCodeRepository,
+  EmailRepository
 } from './repositories/interfaces';
 
 import { 
@@ -73,7 +75,12 @@ const entities = [
     VerificationCodeService,
     {
       provide: VerificationCodeRepository,
-      useClass: VerificationCode,
+      useClass: VerificationCodeService,
+    },
+    EmailService,
+    {
+      provide: EmailRepository,
+      useClass: EmailService,
     }
   ],
   exports: [
@@ -84,7 +91,9 @@ const entities = [
     ChurchRepository,
     ChurchService,
     VerificationCodeRepository,
-    VerificationCodeService
+    VerificationCodeService,
+    EmailRepository,
+    EmailService,
   ],
 })
 export class DataBaseModule { }

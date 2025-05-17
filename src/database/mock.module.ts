@@ -3,13 +3,15 @@ import {
   TaskRepository, 
   UserRepository,
   ChurchRepository,
-  VerificationCodeRepository
+  VerificationCodeRepository,
+  EmailRepository
 } from './repositories/interfaces';
 import { 
   FakeUserRepository, 
   FakeTaskRepository,
   FakeChurchRepository,
-  FakeVerificationCodeRepository
+  FakeVerificationCodeRepository,
+  FakeEmailRepository
 } from './repositories/fakes';
 
 @Module({
@@ -33,6 +35,11 @@ import {
     {
       provide: VerificationCodeRepository,
       useClass: FakeVerificationCodeRepository,
+    },
+    FakeEmailRepository,
+    {
+      provide: EmailRepository,
+      useClass: FakeEmailRepository,
     }
   ],
   exports: [
@@ -43,7 +50,9 @@ import {
     ChurchRepository,
     FakeChurchRepository,
     VerificationCodeRepository,
-    FakeVerificationCodeRepository
+    FakeVerificationCodeRepository,
+    EmailRepository,
+    FakeEmailRepository
   ],
 })
 export class MockDatabaseModule { }

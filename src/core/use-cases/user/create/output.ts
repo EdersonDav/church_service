@@ -1,8 +1,5 @@
-export class UserOutput {
-    name!: string;
-    email!: string;
-}
+import { User } from "../../../../database/entities";
 
 export class Output {
-    data!: UserOutput
+    data!: Partial<User>
 }

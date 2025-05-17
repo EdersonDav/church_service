@@ -38,7 +38,7 @@ describe('# Create User', () => {
                 repository.save.mockResolvedValueOnce(input);
             },
             expected: (output: any) => {
-                expect(output).toEqual({ data: { name: input.name, email: input.email } });
+                expect(output).toEqual({ data:{...input} });
                 expect(repository.save).toBeTruthy();
                 expect(repository.save).toHaveBeenCalledWith(input);
             },

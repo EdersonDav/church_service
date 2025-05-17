@@ -17,9 +17,12 @@ export class VerificationCodeService implements VerificationCodeRepository {
     return codeFound
   }
   
-  async save(code: Partial<VerificationCode>): Promise<boolean> {
+  async save(code: Partial<VerificationCode>): Promise<string> {
     const codeCreated = this.entity.create(code);
-    await this.entity.save(codeCreated);
-    return Boolean(codeCreated);
+    const codeSaved = await this.entity.save(codeCreated);
+    if (!codeSaved) {
+      throw new Error('Error creating verification code');
+    }
+    return codeSaved.code;
   }
 }

@@ -1,20 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { describe, beforeEach, it, expect } from '@jest/globals';
+import { faker } from '@faker-js/faker';
+import { randomUUID } from "crypto";
 
 import { Input } from './input';
 import { CreateVerificationCode } from './use-case';
-import { FakeVerificationCodeRepository } from '../../../../database/repositories/fakes';
-import { faker } from '@faker-js/faker';
-
 import { MockVerificationCodeModule } from '../mock.module';
-import { VerificationCodeRepository } from '../../../../database/repositories/interfaces';
+import { FakeVerificationCodeRepository, FakeEmailRepository } from '../../../../database/repositories/fakes';
+import { VerificationCodeRepository, EmailRepository } from '../../../../database/repositories/interfaces';
 import { User } from '../../../../database/entities';
-import { randomUUID } from "crypto";
-import { encodePass } from '../../../helpers';
+import { encodePass, genCode } from '../../../helpers';
 
 describe('# Create Verification Code', () => {
     let use_case: CreateVerificationCode;
     let repository: FakeVerificationCodeRepository;
+    let repositoryEmail: FakeEmailRepository;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -23,6 +23,7 @@ describe('# Create Verification Code', () => {
 
         use_case = module.get<CreateVerificationCode>(CreateVerificationCode);
         repository = module.get<FakeVerificationCodeRepository>(VerificationCodeRepository);
+        repositoryEmail = module.get<FakeEmailRepository>(EmailRepository);
     });
 
     const user: User = {
@@ -36,6 +37,7 @@ describe('# Create Verification Code', () => {
     const input: Input = { 
         user
     };
+    const code = genCode();
 
     it.each([
         {
@@ -43,12 +45,14 @@ describe('# Create Verification Code', () => {
             should: 'Should be able to create a verification code',
             input: () => input,
             setup: () => {
-                repository.save.mockResolvedValueOnce(true);
+                repository.save.mockResolvedValueOnce(code);
             },
             expected: (output: any) => {
-                expect(output).toEqual({ created: true });
+                expect(output).toEqual(undefined);
                 expect(repository.save).toBeTruthy();
                 expect(repository.save).toHaveBeenCalledTimes(1);
+                expect(repositoryEmail.sendVerificationCode).toHaveBeenCalledTimes(1)
+                expect(repositoryEmail.sendVerificationCode).toHaveBeenCalledWith(user.email, code);
             },
         },
     ])('$should', async ({ run, setup, input, expected }) => {
