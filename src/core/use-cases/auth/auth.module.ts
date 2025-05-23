@@ -4,9 +4,11 @@ import { CreateToken } from './create';
 import { ValidateUser } from './validate';
 import { env } from '../../../config';
 import { DataBaseModule } from '../../../database';
+import { UserModule } from '../user';
 @Module({
   imports: [
     DataBaseModule,
+    UserModule,
     JwtModule.register({
       global: true,
       secret: env.jwtConstants.secret,

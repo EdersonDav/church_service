@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Input } from './input';
 import { EmailRepository, VerificationCodeRepository } from '../../../../database/repositories/interfaces';
-import { User, VerificationCode } from '../../../../database/entities';
+import { VerificationCode } from '../../../../database/entities';
 import { genCode, genExpiredDate } from '../../../helpers';
 
 @Injectable()

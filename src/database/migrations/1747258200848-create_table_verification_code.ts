@@ -60,9 +60,14 @@ export class CreateTableVerificationCode1747258200848 implements MigrationInterf
                     onUpdate: 'CASCADE',
                 }),
             );
+
+            await queryRunner.query(
+                `ALTER TABLE "${EntityEnum.VERIFICATION_CODE}" ADD CONSTRAINT "UQ_User_Code" UNIQUE ("user_id", "code")`
+            );
         }
     
         public async down(queryRunner: QueryRunner): Promise<void> {
+            await queryRunner.dropForeignKey(EntityEnum.VERIFICATION_CODE, 'UQ_User_Code');
             await queryRunner.dropForeignKey(EntityEnum.VERIFICATION_CODE, 'FK_User_Code');
             await queryRunner.dropTable(EntityEnum.VERIFICATION_CODE);
         }

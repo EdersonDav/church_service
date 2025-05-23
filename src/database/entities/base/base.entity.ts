@@ -1,7 +1,6 @@
 import { UUID } from 'crypto';
 import {
   CreateDateColumn,
-  DeleteDateColumn,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Generated

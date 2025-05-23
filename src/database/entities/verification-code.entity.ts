@@ -4,7 +4,7 @@ import { BaseEntity } from "./base";
 import { EntityEnum } from "../../enums";
 
 @Entity(EntityEnum.VERIFICATION_CODE)
-@Unique('user_code_expires_at', ['user_id', 'code', 'expires_at'])
+@Unique(['user_id', 'code'])
 export class VerificationCode extends BaseEntity{
   @Column()
   code!: string;

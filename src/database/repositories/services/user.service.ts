@@ -17,8 +17,8 @@ export class UserService implements UserRepository {
     await this.entity.delete({ email });
   }
 
-  async getByEmail(email: string): Promise<User | null> {
-    const userFound = await this.entity.findOne({ where: { email } })
+  async getBy<K extends keyof User>(search_value: User[K], search_by: K): Promise<User | null> {
+    const userFound = await this.entity.findOne({ where: { [search_by]: search_value} })
     return userFound
   }
 
@@ -28,10 +28,19 @@ export class UserService implements UserRepository {
     return userSaved;
   }
 
-  async update(user_id: UUID, user_set: Partial<User>): Promise<boolean> {
+  async update(user_id: UUID, user_set: Partial<User>): Promise<User | null> {
     const userFound = await this.entity.findOne({ where: { id: user_id } })
     if (!userFound) throw new Error('User not found')
-    const userUpdated = await this.entity.update(userFound.id, user_set);
-    return Boolean(userUpdated.affected);
+    const userUpdated = await this.entity.upsert({...user_set}, {conflictPaths:['email'], upsertType: 'on-conflict-do-update'} );
+    return await this.getBy(userUpdated.identifiers[0].id, 'id');
+  }
+
+  async getNotVerifiedByEmail(email: string): Promise<User | null> {
+    const userFound = await this.entity.findOne({ where: { email, is_verified: false } })
+    return userFound
+  }
+  
+  async markAsVerified(user_id: UUID): Promise<void> {
+    await this.entity.update({ id: user_id }, { is_verified: true });
   }
 }

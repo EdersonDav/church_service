@@ -2,21 +2,24 @@ import { Injectable } from '@nestjs/common';
 import bcrypt from 'bcrypt'
 
 import { Input } from './input';
-import { UserRepository } from '../../../../database/repositories/interfaces';
+import { GetUser } from '../../user/get'
 import { Output } from './output';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class ValidateUser {
-  constructor(private readonly userRepository: UserRepository) { }
+  constructor(private readonly getUser: GetUser) { }
   async execute({ email, password }: Input): Promise<Output> {
-    const user = await this.userRepository.getByEmail(email);
-    if (user && bcrypt.compareSync(password, user.password)) {
-      const data = {
-        email: user.email,
-        name: user.name,
-      }
-      return { data };
-    }
-    return { data: null };
+    const {data} = await this.getUser.execute({search_by: 'email', search_data: email});
+    if(!data?.password || !bcrypt.compareSync(password, data.password)) return { data: null };
+    return { data: 
+      {
+        email: data.email || '',
+        name: data.name || '',
+        id: data.id || '' as UUID,
+        is_verified: data.is_verified || false,
+      } 
+    };
+    
   }
 }
