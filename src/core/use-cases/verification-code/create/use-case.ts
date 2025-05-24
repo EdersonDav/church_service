@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Input } from './input';
-import { EmailRepository, VerificationCodeRepository } from '../../../../database/repositories/interfaces';
+import { VerificationCodeRepository } from '../../../../database/repositories/interfaces';
 import { VerificationCode } from '../../../../database/entities';
 import { genCode, genExpiredDate } from '../../../helpers';
+import { Output } from './output';
 
 @Injectable()
 export class CreateVerificationCode {
   constructor(
-    private repository: VerificationCodeRepository,
-    private emailRepository: EmailRepository,
+    private repository: VerificationCodeRepository
   ) { }
-  async execute(input: Input): Promise<void> {
+  async execute(input: Input): Promise<Output> {
     if (!input.user.email) {
       throw new Error('Error during verification code creation: user not found');
     }
@@ -25,6 +25,7 @@ export class CreateVerificationCode {
     if (!code) {
       throw new Error('Error creating verification code');
     }
-    this.emailRepository.sendVerificationCode(input.user.email, code);
+
+    return {data: {code}}
   }
 }

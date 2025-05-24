@@ -11,9 +11,18 @@ export class EmailService implements EmailRepository{
         const templatePath = join(process.cwd(), 'assets', 'templates', 'verify');
         return this.mailer.sendMail({
             to: email,
-            subject: 'Seu código de verificação',
+            subject: 'The Church: Seu código de verificação',
             template: templatePath,
             context: { code },
+        });
+    }
+
+    async sendUserAlreadyExistsEmail(email: string): Promise<SentMessageInfo> {
+        const templatePath = join(process.cwd(), 'assets', 'templates', 'update-account');
+        return this.mailer.sendMail({
+            to: email,
+            subject: 'The Church: Email já cadastrado',
+            template: templatePath,
         });
     }
 }

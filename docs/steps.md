@@ -3,10 +3,13 @@ Next step
 - update user - ok
 - if a user try to login but this user is not verified, send code again - ok 
 -- if user existis and try to register again if the user does not verified, update user register by email and resend code - ok
-- verify user code 
+- verify user code - ok
 -- if users already register and they account is verified and try to register again, send a email with information about account already exists 
 -----------------
 - verify login 
+- reset password
+- update user data
+-- add user birthday
 - add user id in requests to verify permissions
 -- handle permission for route, add in jwt token data about user informations
 -----------------
@@ -21,6 +24,7 @@ Next step
 ----------------
 - crud tasks
 - related users and tasks
+- set in user perfil tasks like minister, guitar etc
 - crud scales
 -- for scales and tasks, only admin church and admin sector can create and allocate users
 -------------

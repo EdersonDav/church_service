@@ -5,8 +5,16 @@ import { TaskModule } from './tasks';
 import { ChurchModule } from './church';
 import { UserModule } from './user';
 import { VerificationCodeModule } from './verification-code';
+import { EmailModule } from './emails';
 
-const modules = [AuthModule, TaskModule, ChurchModule, UserModule, VerificationCodeModule];
+const modules = [
+  AuthModule, 
+  TaskModule, 
+  ChurchModule, 
+  UserModule, 
+  VerificationCodeModule, 
+  EmailModule
+];
 
 @Module({
   imports: [...modules, DataBaseModule],
