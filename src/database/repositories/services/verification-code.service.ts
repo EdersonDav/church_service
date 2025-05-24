@@ -32,11 +32,7 @@ export class VerificationCodeService implements VerificationCodeRepository {
   }
   
   async deleteByUserId(user_id: UUID): Promise<void> {
-    const codeFound = await this.entity.findOne({ where: { user_id } });
-    if (!codeFound) {
-      throw new Error('Code not found');
-    }
-    await this.entity.delete(codeFound.id);
+    await this.entity.delete({ user_id  });
   }
 
   async verifyCode(code: string, user_id: UUID): Promise<VerificationCode | null> {

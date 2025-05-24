@@ -4,4 +4,5 @@ export class FakeVerificationCodeRepository implements VerificationCodeRepositor
   getLastCodeByUser = jest.fn();
   save = jest.fn();
   deleteByUserId = jest.fn();
+  verifyCode = jest.fn();
 }

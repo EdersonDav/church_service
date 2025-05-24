@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Input } from './input';
 import { Output } from './output';
-import { GetNotVerifiedUser } from '../getNoVerified/use-case';
+import { GetNotVerifiedUser } from '../get-no-verified/use-case';
 import { UpdateUser } from '../update/use-case';
 import { UserRepository } from '../../../../database/repositories/interfaces';
 

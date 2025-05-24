@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { CreateUser } from './create';
 import { DeleteUser } from './delete';
 import { UpdateUser } from './update';
-import { GetNotVerifiedUser } from './getNoVerified';
+import { GetNotVerifiedUser } from './get-no-verified';
 import { GetUser } from './get';
 import { DataBaseModule } from '../../../database';
-import { MarkAsVerifiedUser } from './markAsVerify';
+import { MarkAsVerifiedUser } from './mark-as-verify';
 
 const useCases = [
   CreateUser,

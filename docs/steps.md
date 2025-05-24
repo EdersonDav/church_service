@@ -34,6 +34,7 @@ Next step
 -- this extra events to need to related with the church
 --------------
 - crud church assets, like music, schedules ....
+-- https://chatgpt.com/canvas/shared/6831b5aa751c8191aa5e5d38931009e7
  
 
 

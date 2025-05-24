@@ -4,6 +4,7 @@ import { LoginController } from './login';
 import { TaskController } from './tasks';
 import { ChurchController } from './church';
 import { UserController } from './user';
+import { VerificationCodeController } from './verify-code';
 
 @Module({
   imports: [CoreModule],
@@ -11,7 +12,8 @@ import { UserController } from './user';
     LoginController,
     TaskController,
     ChurchController,
-    UserController
+    UserController,
+    VerificationCodeController
   ],
 })
 export class ControllerModule { }

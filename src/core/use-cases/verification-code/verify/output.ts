@@ -1,3 +1,3 @@
 export class Output {
-    data!: {message: string};
+    data!: boolean;
 }
