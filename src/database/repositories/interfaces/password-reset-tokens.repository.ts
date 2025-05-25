@@ -5,4 +5,5 @@ export abstract class PasswordResetTokenRepository {
   abstract save(token: Partial<PasswordResetToken>): Promise<string>;
   abstract deleteByUserId(user_id: UUID): Promise<void>;
   abstract verifyToken(user_id: UUID): Promise<PasswordResetToken | null>;
+  abstract get(token: string): Promise<PasswordResetToken | null>;
 }

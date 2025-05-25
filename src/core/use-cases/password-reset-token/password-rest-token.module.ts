@@ -1,19 +1,21 @@
 import { Module } from '@nestjs/common';
-import { CreateVerificationCode } from './create';
-import { VerifyCode } from './verify';
-import { DeleteCode } from './delete-code';
+import { CreatePasswordResetToken } from './create';
+import { VerifyToken } from './verify';
+import { DeleteToken } from './delete-token';
+import { GetToken } from './get';
 import { DataBaseModule } from '../../../database';
 
-const verificationCodeUseCases = [
-  CreateVerificationCode,
-  VerifyCode,
-  DeleteCode,
+const passwordResetTokenUseCases = [
+  CreatePasswordResetToken,
+  VerifyToken,
+  DeleteToken,
+  GetToken
 ];
 @Module({
   imports: [
     DataBaseModule
   ],
-  providers: verificationCodeUseCases,
-  exports: verificationCodeUseCases,
+  providers: passwordResetTokenUseCases,
+  exports: passwordResetTokenUseCases,
 })
 export class VerificationCodeModule { }

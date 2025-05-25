@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository as TypeORMRepository } from 'typeorm';
+import { MoreThan, Repository as TypeORMRepository } from 'typeorm';
 import { VerificationCode } from '../../entities';
 import { VerificationCodeRepository } from '../interfaces';
 import { UUID } from 'crypto';
@@ -11,18 +11,18 @@ export class VerificationCodeService implements VerificationCodeRepository {
     @InjectRepository(VerificationCode)
     private readonly entity: TypeORMRepository<VerificationCode>,
   ) { }
-  
+
   async getLastCodeByUser(user_id: UUID): Promise<VerificationCode | null> {
     const codeFound = await this.entity.findOne({ where: { user_id }, order: { created_at: 'DESC' } })
     return codeFound
   }
-  
+
   async save(code_data: Partial<VerificationCode>): Promise<string> {
     const codeCreated = this.entity.create(code_data);
     const codeSaved = await this.entity.upsert(
-      codeCreated, 
+      codeCreated,
       {
-        conflictPaths:['user_id', 'code'], 
+        conflictPaths: ['user_id', 'code'],
         upsertType: 'on-conflict-do-update'
       });
     if (!codeSaved) {
@@ -30,13 +30,13 @@ export class VerificationCodeService implements VerificationCodeRepository {
     }
     return codeCreated.code;
   }
-  
+
   async deleteByUserId(user_id: UUID): Promise<void> {
-    await this.entity.delete({ user_id  });
+    await this.entity.delete({ user_id });
   }
 
   async verifyCode(code: string, user_id: UUID): Promise<VerificationCode | null> {
-    const codeFound = await this.entity.findOne({ where: { code, user_id } });
+    const codeFound = await this.entity.findOne({ where: { code, user_id, expires_at: MoreThan(new Date()) } });
     if (!codeFound) {
       throw new Error('Code not found');
     }

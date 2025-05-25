@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository as TypeORMRepository } from 'typeorm';
+import { MoreThan, Repository as TypeORMRepository } from 'typeorm';
 import { PasswordResetToken } from '../../entities';
 import { PasswordResetTokenRepository } from '../interfaces';
 import { UUID } from 'crypto';
-import { hashString, validateHash } from '../../../core/helpers';
+import { hashString } from '../../../core/helpers';
 
 @Injectable()
 export class PasswordResetTokenService implements PasswordResetTokenRepository {
@@ -35,10 +35,20 @@ export class PasswordResetTokenService implements PasswordResetTokenRepository {
   }
 
   async verifyToken(user_id: UUID): Promise<PasswordResetToken | null> {
-    const tokenFound = await this.entity.findOne({ where: { user_id } });
+    const tokenFound = await this.entity.findOne({ where: { user_id, expires_at: MoreThan(new Date()) } });
     if (!tokenFound) {
       throw new Error('Token not found');
     }
+    return tokenFound;
+  }
+
+  async get(token: string): Promise<PasswordResetToken | null> {
+    const tokenFound = await this.entity.findOne({ where: { token: hashString(token) } });
+
+    if (!tokenFound) {
+      throw new Error('Token not found');
+    }
+
     return tokenFound;
   }
 }
