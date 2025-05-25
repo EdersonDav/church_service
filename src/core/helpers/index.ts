@@ -1,3 +1,5 @@
-export * from './encodePass'
+export * from './hashString'
 export * from './genCode'
+export * from './genToken'
 export * from './genExpiredDate'
+export * from './validateHash'

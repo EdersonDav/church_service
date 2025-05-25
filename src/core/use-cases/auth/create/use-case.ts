@@ -9,8 +9,10 @@ export class CreateToken {
     private jwtService: JwtService
   ) { }
   async execute(input: Input): Promise<Output> {
-    return {
+    const data ={
       access_token: await this.jwtService.signAsync(input),
     };
+
+    return { data };
   }
 }

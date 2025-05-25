@@ -35,4 +35,8 @@ export const env = {
       from: process.env.MAIL_FROM,
     },
   },
+  codes_expired_in: {
+    verification_code: 10,
+    password_reset_code: 60,
+  }
 };

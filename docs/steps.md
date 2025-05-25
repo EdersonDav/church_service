@@ -4,10 +4,10 @@ Next step
 - if a user try to login but this user is not verified, send code again - ok 
 -- if user existis and try to register again if the user does not verified, update user register by email and resend code - ok
 - verify user code - ok
--- if users already register and they account is verified and try to register again, send a email with information about account already exists 
+-- if users already register and they account is verified and try to register again, send a email with information about account already exists - ok
 -----------------
-- verify login 
-- reset password
+- verify login - ok
+- reset password, when the user click in forgot my pass we send a code for there email and 
 - update user data
 -- add user birthday
 - add user id in requests to verify permissions

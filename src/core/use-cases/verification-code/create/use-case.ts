@@ -4,6 +4,7 @@ import { VerificationCodeRepository } from '../../../../database/repositories/in
 import { VerificationCode } from '../../../../database/entities';
 import { genCode, genExpiredDate } from '../../../helpers';
 import { Output } from './output';
+import { env } from '../../../../config';
 
 @Injectable()
 export class CreateVerificationCode {
@@ -18,7 +19,7 @@ export class CreateVerificationCode {
     const verificationCode: Partial<VerificationCode> = {
       code: genCode(),
       user_id: input.user.id,
-      expires_at: genExpiredDate()
+      expires_at: genExpiredDate(env.codes_expired_in.verification_code)
     }
     const code = await this.repository.save(verificationCode);
 
@@ -26,6 +27,6 @@ export class CreateVerificationCode {
       throw new Error('Error creating verification code');
     }
 
-    return {data: {code}}
+    return { data: { code } }
   }
 }

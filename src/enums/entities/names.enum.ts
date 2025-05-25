@@ -9,4 +9,5 @@ export enum EntityEnum {
     PARTICIPANTS = 'participants',
     USER_CHURCH = 'user_church',
     VERIFICATION_CODE = 'verification_codes',
+    PASSWORD_RESET_TOKEN = 'password_reset_tokens'
 }

@@ -1,3 +1,3 @@
 export class Output {
-    access_token!: string
+    data!: {access_token: string}
 }

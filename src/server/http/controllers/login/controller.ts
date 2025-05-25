@@ -18,20 +18,20 @@ export class LoginController {
     @Body() body: LoginBody,
     @Res() res: Response
   ): Promise<Response<LoginResponse>> {
-    const { data } = await this.validateUser.execute({ email: body.email, password: body.password });
-    if (!data) {
+    const { data: user } = await this.validateUser.execute({ email: body.email, password: body.password });
+    if (!user) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    const { email, name, is_verified } = data;
+    const { email, name, is_verified } = user;
     if (!is_verified) {
       await this.createVerificationCode.execute({
-        user: data,
+        user,
       });
       return res.status(401).send({ message: 'Verify your email' });
     }
 
-    const { access_token } = await this.createToken.execute({ email, name });
+    const {data: { access_token }} = await this.createToken.execute({ email, name });
 
     res.setHeader('Authorization', `Bearer ${access_token}`);
 

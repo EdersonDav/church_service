@@ -1,33 +1,36 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { env } from '../config';
-import { 
-  UserService, 
-  TaskService, 
+import {
+  UserService,
+  TaskService,
   ChurchService,
   VerificationCodeService,
-  EmailService
+  EmailService,
+  PasswordResetTokenService
 } from './repositories/services';
 
-import { 
-  TaskRepository, 
-  UserRepository, 
-  ChurchRepository, 
+import {
+  TaskRepository,
+  UserRepository,
+  ChurchRepository,
   VerificationCodeRepository,
-  EmailRepository
+  EmailRepository,
+  PasswordResetTokenRepository
 } from './repositories/interfaces';
 
-import { 
-  Task, 
-  User, 
-  Church, 
-  Participant, 
-  Scale, 
-  Sector, 
-  Unavailability, 
-  UserChurch, 
+import {
+  Task,
+  User,
+  Church,
+  Participant,
+  Scale,
+  Sector,
+  Unavailability,
+  UserChurch,
   UserTask,
-  VerificationCode
+  VerificationCode,
+  PasswordResetToken
 } from './entities';
 
 const entities = [
@@ -38,10 +41,12 @@ const entities = [
   Scale,
   Sector,
   Unavailability,
-  UserChurch, 
+  UserChurch,
   UserTask,
-  VerificationCode
+  VerificationCode,
+  PasswordResetToken
 ];
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -81,6 +86,11 @@ const entities = [
     {
       provide: EmailRepository,
       useClass: EmailService,
+    },
+    PasswordResetTokenService,
+    {
+      provide: PasswordResetTokenRepository,
+      useClass: PasswordResetTokenService,
     }
   ],
   exports: [
@@ -94,6 +104,8 @@ const entities = [
     VerificationCodeService,
     EmailRepository,
     EmailService,
+    PasswordResetTokenRepository,
+    PasswordResetTokenService,
   ],
 })
 export class DataBaseModule { }
