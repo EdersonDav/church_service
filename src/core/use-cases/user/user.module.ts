@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { CreateUser } from './create';
 import { DeleteUser } from './delete';
 import { UpdateUser } from './update';
+import { UpdatePasswordUser } from './update-password';
 import { GetNotVerifiedUser } from './get-no-verified';
 import { GetUser } from './get';
 import { DataBaseModule } from '../../../database';
@@ -12,8 +13,9 @@ const useCases = [
   UpdateUser,
   GetNotVerifiedUser,
   DeleteUser,
-  GetUser, 
-  MarkAsVerifiedUser
+  GetUser,
+  MarkAsVerifiedUser,
+  UpdatePasswordUser
 ];
 @Module({
   imports: [

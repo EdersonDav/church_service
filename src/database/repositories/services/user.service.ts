@@ -43,4 +43,12 @@ export class UserService implements UserRepository {
   async markAsVerified(user_id: UUID): Promise<void> {
     await this.entity.update({ id: user_id }, { is_verified: true });
   }
+
+  async updatePassword(email: string, password: string): Promise<boolean> {
+    const userUpdated = await this.entity.update({ email }, {
+      password: hashString(password)
+    });
+
+    return !!userUpdated.affected
+  }
 }

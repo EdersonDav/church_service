@@ -18,6 +18,7 @@ export class PasswordResetTokenService implements PasswordResetTokenRepository {
       ...token_data,
       token: hashString(token_data.token as string),
     });
+
     const tokenSaved = await this.entity.upsert(
       tokenCreated,
       {

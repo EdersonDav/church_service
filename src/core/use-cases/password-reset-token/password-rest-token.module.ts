@@ -18,4 +18,4 @@ const passwordResetTokenUseCases = [
   providers: passwordResetTokenUseCases,
   exports: passwordResetTokenUseCases,
 })
-export class VerificationCodeModule { }
+export class PasswordResetTokenModule { }

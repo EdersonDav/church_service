@@ -7,4 +7,5 @@ export class FakeUserRepository implements UserRepository {
   deleteByEmail = jest.fn();
   getNotVerifiedByEmail = jest.fn();
   markAsVerified = jest.fn();
+  updatePassword = jest.fn();
 }

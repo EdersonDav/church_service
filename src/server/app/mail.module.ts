@@ -10,17 +10,17 @@ import { env } from '../../config';
       transport: {
         host: env.mail.host,
         port: env.mail.port,
-        secure: env.mail.secure, 
+        secure: env.mail.secure,
         auth: {
           user: env.mail.auth.user,
           pass: env.mail.auth.pass,
         },
       },
       defaults: {
-        from: env.mail.defaults.from,
+        from: env.mail.from,
       },
       template: {
-        dir:  join(process.cwd(), 'assets', 'templates'),
+        dir: join(process.cwd(), 'assets', 'templates'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
@@ -29,4 +29,4 @@ import { env } from '../../config';
     }),
   ],
 })
-export class MailModule {}
+export class MailModule { }

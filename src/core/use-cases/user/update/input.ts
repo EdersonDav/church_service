@@ -3,9 +3,8 @@ import { User } from "../../../../database/entities";
 
 export class UserUpdateInput {
     id?: UUID;
-    name!: string;
-    email!: string;
-    password!: string;
+    name?: string;
+    email?: string;
 }
 
 export class Input {

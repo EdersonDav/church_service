@@ -1,6 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { CreateUserResponse } from '../user';
+import { CreateUserResponse } from '../../user';
 
 export class LoginResponseData {
     @Expose()

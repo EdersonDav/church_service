@@ -55,9 +55,14 @@ export class CreateTablePasswordResetTokens1748182153288 implements MigrationInt
                 name: 'FK_User_PasswordResetToken',
             })
         );
+
+        await queryRunner.query(
+            `ALTER TABLE "${EntityEnum.PASSWORD_RESET_TOKEN}" ADD CONSTRAINT "UQ_User_Token" UNIQUE ("user_id", "token")`
+        );
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.dropForeignKey(EntityEnum.PASSWORD_RESET_TOKEN, 'UQ_User_Token');
         await queryRunner.dropForeignKey(EntityEnum.PASSWORD_RESET_TOKEN, 'FK_User_PasswordResetToken');
         await queryRunner.dropTable(EntityEnum.PASSWORD_RESET_TOKEN);
     }

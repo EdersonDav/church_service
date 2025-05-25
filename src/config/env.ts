@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 config();
 
 export const env = {
+  app_name: process.env.APP_NAME,
   api: {
     PORT: process.env.PORT,
     NODE_ENV: process.env.NODE_ENV,
@@ -31,9 +32,8 @@ export const env = {
       user: process.env.MAIL_USER,
       pass: process.env.MAIL_PASS,
     },
-    defaults: {
-      from: process.env.MAIL_FROM,
-    },
+    from: process.env.MAIL_FROM,
+    reset_password_url: process.env.RESET_PASSWORD_URL || "",
   },
   codes_expired_in: {
     verification_code: 10,

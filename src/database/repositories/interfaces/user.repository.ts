@@ -8,4 +8,5 @@ export abstract class UserRepository {
   abstract deleteByEmail(email: string): Promise<void>;
   abstract getNotVerifiedByEmail(email: string): Promise<User | null>;
   abstract markAsVerified(user_id: UUID): Promise<void>;
+  abstract updatePassword(email: string, password: string): Promise<boolean>;
 }
