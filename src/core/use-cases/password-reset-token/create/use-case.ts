@@ -16,8 +16,9 @@ export class CreatePasswordResetToken {
       throw new Error('Error during verification token creation: user not found');
     }
 
+    const tokenToSave = genToken()
     const PasswordResetToken: Partial<PasswordResetToken> = {
-      token: genToken(),
+      token: tokenToSave,
       user_id: input.user.id,
       expires_at: genExpiredDate(env.codes_expired_in.verification_code)
     }
@@ -27,6 +28,6 @@ export class CreatePasswordResetToken {
       throw new Error('Error creating verification token');
     }
 
-    return { data: { token } }
+    return { data: { token: tokenToSave } }
   }
 }

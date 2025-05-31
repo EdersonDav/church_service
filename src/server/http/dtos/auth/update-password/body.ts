@@ -19,8 +19,4 @@ export class UpdatePasswordBody {
         message: "Password must be strong and contain at least 8 characters, including at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 symbol."
     })
     password!: string;
-
-    @IsString({ message: 'The token is needed' })
-    @Length(32, 32, { message: 'Invalid token' })
-    token!: string;
 }

@@ -2,14 +2,12 @@ import { Module } from '@nestjs/common';
 import { CreatePasswordResetToken } from './create';
 import { VerifyToken } from './verify';
 import { DeleteToken } from './delete-token';
-import { GetToken } from './get';
 import { DataBaseModule } from '../../../database';
 
 const passwordResetTokenUseCases = [
   CreatePasswordResetToken,
   VerifyToken,
-  DeleteToken,
-  GetToken
+  DeleteToken
 ];
 @Module({
   imports: [

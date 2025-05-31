@@ -2,7 +2,7 @@ import { Body, Controller, Post, UnauthorizedException, Res, Get, Query } from '
 import { Response } from 'express';
 import { CreateToken } from '../../../../core/use-cases/auth/create';
 import { ValidateUser } from '../../../../core/use-cases/auth/validate';
-import { CreatePasswordResetToken, GetToken, VerifyToken } from "../../../../core/use-cases/password-reset-token";
+import { CreatePasswordResetToken, VerifyToken } from "../../../../core/use-cases/password-reset-token";
 import { CreateVerificationCode } from '../../../../core/use-cases/verification-code';
 import { GetUser, UpdatePasswordUser } from '../../../../core/use-cases/user';
 import { SendResetPasswordToken } from '../../../../core/use-cases/emails'
@@ -14,7 +14,8 @@ import {
   CheckTokenQuery,
   CheckTokenResponseData,
   UpdatePasswordBody,
-  UpdatePasswordResponse
+  UpdatePasswordResponse,
+  UpdatePasswordQuery
 } from '../../dtos';
 
 @Controller('auth')
@@ -24,7 +25,6 @@ export class LoginController {
     private readonly validateUser: ValidateUser,
     private readonly createVerificationCode: CreateVerificationCode,
     private readonly createPasswordResetToken: CreatePasswordResetToken,
-    private readonly getToken: GetToken,
     private readonly verifyToken: VerifyToken,
     private readonly getUser: GetUser,
     private readonly sendResetPasswordToken: SendResetPasswordToken,
@@ -59,12 +59,18 @@ export class LoginController {
 
   @Get('validate-reset-token')
   async getValidateResetToken(
-    @Query('token') { token }: CheckTokenQuery,
+    @Query() query: CheckTokenQuery,
     @Res() res: Response
   ): Promise<Response<CheckTokenResponseData>> {
-    const { data: isValid } = await this.getToken.execute({ token });
+    const { token, email } = query;
+    const { data: user } = await this.getUser.execute({ search_by: 'email', search_data: email });
+    if (!user?.id || !user.email) {
+      return res.status(400).send({ message: "Token expired" });
+    }
+
+    const { data: isValid } = await this.verifyToken.execute({ token, user_id: user.id });
     if (!isValid) {
-      return res.status(404).send({ message: "Token expired" });
+      return res.status(400).send({ message: "Token expired" });
     }
     return res.status(200).send({ message: "ok" });
   }
@@ -98,7 +104,8 @@ export class LoginController {
 
   @Post('update-password')
   async updatePass(
-    @Body() { token, email, password }: UpdatePasswordBody,
+    @Query() { token }: UpdatePasswordQuery,
+    @Body() { email, password }: UpdatePasswordBody,
   ): Promise<UpdatePasswordResponse> {
     try {
       const { data: user } = await this.getUser.execute({ search_by: 'email', search_data: email });

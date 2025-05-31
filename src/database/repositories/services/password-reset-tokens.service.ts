@@ -42,14 +42,4 @@ export class PasswordResetTokenService implements PasswordResetTokenRepository {
     }
     return tokenFound;
   }
-
-  async get(token: string): Promise<PasswordResetToken | null> {
-    const tokenFound = await this.entity.findOne({ where: { token: hashString(token) } });
-
-    if (!tokenFound) {
-      throw new Error('Token not found');
-    }
-
-    return tokenFound;
-  }
 }
