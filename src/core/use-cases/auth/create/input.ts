@@ -1,4 +1,5 @@
+import { UUID } from "crypto";
+
 export class Input {
-    name!: string
-    email!: string
+    id!: UUID;
 }

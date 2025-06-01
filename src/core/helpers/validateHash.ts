@@ -1,2 +1,2 @@
 import bcrypt from 'bcrypt'
-export const validateHash = async (hash: string, value: string): Promise<boolean> => await bcrypt.compare(value, hash);
+export const validateHash = async ({ hash, value }: { value: string, hash: string }): Promise<boolean> => await bcrypt.compare(value, hash);

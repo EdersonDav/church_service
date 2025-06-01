@@ -6,6 +6,6 @@ const modules = [UseCasesModule];
 
 @Module({
   imports: [...modules, DataBaseModule],
-  exports: modules,
+  exports: [...modules],
 })
 export class CoreModule { }

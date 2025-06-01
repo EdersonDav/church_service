@@ -14,7 +14,7 @@ export class VerifyToken {
     return {
       data: !!(
         verificationCode &&
-        (await validateHash(verificationCode.token, input.token))
+        (await validateHash({ hash: verificationCode.token, value: input.token }))
       )
     }
   }

@@ -11,10 +11,9 @@ Next step
 
 - verify login - ok
 - reset password, when the user click in forgot my pass we send a code for there email - ok
-- update user data
-  -- add user birthday
-- add user id in requests to verify permissions
-  -- handle permission for route, add in jwt token data about user informations
+- add user birthday - ok
+  -- update user data - ok
+- add user id in requests to verify permissions - ok
 
 ---
 
@@ -22,6 +21,7 @@ Next step
 - add members in the church, set default voluntary
 - set others members as a admin
   -- only church admin can set others user as admin
+  -- handle permission for route, add in jwt token data about user informations
 
 ---
 

@@ -5,6 +5,8 @@ import { ValidateUser } from './validate';
 import { env } from '../../../config';
 import { DataBaseModule } from '../../../database';
 import { UserModule } from '../user';
+import { AuthGuard } from './guard/auth.guard';
+const useCases = [CreateToken, ValidateUser, AuthGuard];
 @Module({
   imports: [
     DataBaseModule,
@@ -15,7 +17,7 @@ import { UserModule } from '../user';
       signOptions: { expiresIn: env.jwtConstants.expiresIn },
     }),
   ],
-  providers: [CreateToken, ValidateUser],
-  exports: [CreateToken, ValidateUser],
+  providers: [...useCases],
+  exports: [...useCases],
 })
 export class AuthModule { }

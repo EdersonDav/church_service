@@ -8,7 +8,6 @@ import { fa, faker } from '@faker-js/faker';
 
 import { MockUserModule } from '../mock.module';
 import { UserRepository } from '../../../../database/repositories/interfaces';
-import { encodePass } from '../../../helpers';
 
 describe('# Create User', () => {
     let use_case: CreateUser;
@@ -23,7 +22,7 @@ describe('# Create User', () => {
         repository = module.get<FakeUserRepository>(UserRepository);
     });
 
-    const input: Input = { 
+    const input: Input = {
         name: faker.person.fullName(),
         email: faker.internet.email(),
         password: faker.internet.password(),
@@ -38,7 +37,7 @@ describe('# Create User', () => {
                 repository.save.mockResolvedValueOnce(input);
             },
             expected: (output: any) => {
-                expect(output).toEqual({ data:{...input} });
+                expect(output).toEqual({ data: { ...input } });
                 expect(repository.save).toBeTruthy();
                 expect(repository.save).toHaveBeenCalledWith(input);
             },

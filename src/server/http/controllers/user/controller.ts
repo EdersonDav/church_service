@@ -1,18 +1,39 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards
+} from '@nestjs/common';
 import { CreateVerificationCode } from '../../../../core/use-cases/verification-code/create';
 import { SendUserAlreadyExists, SendVerifyCode } from '../../../../core/use-cases/emails';
-import { CreateUserBody, CreateUserResponse, GetUserParam, GetUserResponse, UserData } from '../../dtos';
+import {
+  CreateUserBody,
+  CreateUserResponse,
+  GetUserParam,
+  GetUserResponse,
+  UserData,
+  UpdateUserBody
+} from '../../dtos';
 import {
   CreateUser,
   GetUser,
-  DeleteUser
+  DeleteUser,
+  UpdateUser
 } from '../../../../core/use-cases/user';
+import { AuthGuard } from '../../../../core/use-cases/auth/guard/auth.guard';
+import { ReqUserDecorator } from '../../../../common';
+import { UUID } from 'crypto';
 
 @Controller('users')
 export class UserController {
   constructor(
     private readonly createUser: CreateUser,
     private readonly getUser: GetUser,
+    private readonly updateUser: UpdateUser,
     private readonly createVerificationCode: CreateVerificationCode,
     private readonly deleteUser: DeleteUser,
     private readonly sendUserAlreadyExists: SendUserAlreadyExists,
@@ -66,16 +87,32 @@ export class UserController {
       return { message: 'Verify your email' };
     } catch (error) {
       console.log(error);
-      await this.delete(userCreated.email);
+      await this.deleteUser.execute({ email: userCreated.email });
       throw new Error('Error sending verification code');
     }
   }
 
-  @Delete(':email')
-  async delete(
-    @Param() email: string
-  ): Promise<void> {
-    await this.deleteUser.execute({ email });
-    return;
+  @Patch(':id')
+  @UseGuards(AuthGuard)
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserBody,
+    @ReqUserDecorator() user: { id: UUID }
+  ): Promise<GetUserResponse | null> {
+    if (user.id !== id) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const { data: userUpdated } = await this.updateUser.execute({
+      update_by: 'id',
+      user_data: {
+        ...dto,
+        id
+      }
+    });
+    if (!userUpdated) {
+      throw new Error('Error updating user');
+    }
+    return { data: userUpdated as UserData };
   }
 }

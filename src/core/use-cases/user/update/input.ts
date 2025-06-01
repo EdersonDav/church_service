@@ -4,7 +4,8 @@ import { User } from "../../../../database/entities";
 export class UserUpdateInput {
     id?: UUID;
     name?: string;
-    email?: string;
+    password?: string;
+    birthday?: Date | null;
 }
 
 export class Input {

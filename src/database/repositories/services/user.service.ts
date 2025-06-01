@@ -30,9 +30,13 @@ export class UserService implements UserRepository {
 
   async update(user_id: UUID, user_set: Partial<User>): Promise<User | null> {
     const userFound = await this.entity.findOne({ where: { id: user_id } })
+    if (user_set?.password) {
+      user_set.password = hashString(user_set.password);
+    }
     if (!userFound) throw new Error('User not found')
-    const userUpdated = await this.entity.upsert({ ...user_set }, { conflictPaths: ['email'], upsertType: 'on-conflict-do-update' });
-    return await this.getBy(userUpdated.identifiers[0].id, 'id');
+    const userUpdated = await this.entity.update({ id: user_id }, { ...user_set })
+    if (!userUpdated.affected) return null;
+    return await this.getBy(user_id, 'id');
   }
 
   async getNotVerifiedByEmail(email: string): Promise<User | null> {

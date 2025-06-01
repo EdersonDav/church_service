@@ -15,10 +15,14 @@ export class UserData {
     @Expose()
     name!: string;
 
+    @ApiProperty({ description: 'User Birthday' })
+    @Expose()
+    birthday?: Date | null;
+
     @ApiProperty({ description: 'User Is Verified' })
     @Expose()
     is_verified!: boolean
-    
+
     @ApiProperty({ description: 'User Created At' })
     @Expose()
     created_at!: Date;
@@ -31,6 +35,6 @@ export class UserData {
 export class GetUserResponse {
     @ApiProperty({ description: 'Get User Data', type: UserData })
     @Expose()
-    @Type(() => UserData) 
+    @Type(() => UserData)
     data!: UserData;
 }

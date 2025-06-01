@@ -49,7 +49,7 @@ export class LoginController {
       return res.status(401).send({ message: 'Verify your email' });
     }
 
-    const { data: { access_token } } = await this.createToken.execute({ email, name });
+    const { data: { access_token } } = await this.createToken.execute({ id: user.id });
 
     res.setHeader('Authorization', `Bearer ${access_token}`);
 

@@ -32,4 +32,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => PasswordResetToken, (t) => t.user)
   reset_tokens?: PasswordResetToken[];
+
+  @Column({ type: 'date', nullable: true, default: null })
+  birthday?: Date | null;
 }

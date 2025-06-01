@@ -1,5 +1,5 @@
 import { User } from "../../../../database/entities";
 
 export class Output {
-    data!: Partial<User>
+    data!: Partial<User | null>;
 }

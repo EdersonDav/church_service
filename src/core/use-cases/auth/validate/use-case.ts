@@ -12,10 +12,9 @@ export class ValidateUser {
   constructor(private readonly getUser: GetUser) { }
   async execute({ email, password }: Input): Promise<Output> {
     const { data } = await this.getUser.execute({ search_by: 'email', search_data: email });
-    if (!data?.password || !(await validateHash(password, data.password))) return { data: null };
+    if (!data?.password || !(await validateHash({ value: password, hash: data.password }))) return { data: null };
     return {
-      data:
-      {
+      data: {
         email: data.email || '',
         name: data.name || '',
         id: data.id || '' as UUID,

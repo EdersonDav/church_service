@@ -9,17 +9,17 @@ import { PasswordResetTokenModule } from './password-reset-token';
 import { EmailModule } from './emails';
 
 const modules = [
-  AuthModule,
   TaskModule,
   ChurchModule,
   UserModule,
   VerificationCodeModule,
   EmailModule,
-  PasswordResetTokenModule
+  PasswordResetTokenModule,
+  AuthModule
 ];
 
 @Module({
   imports: [...modules, DataBaseModule],
-  exports: modules,
+  exports: [...modules],
 })
 export class UseCasesModule { }
