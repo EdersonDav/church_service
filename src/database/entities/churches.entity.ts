@@ -4,9 +4,8 @@ import { EntityEnum } from '../../enums';
 import { Sector } from './sectors.entity';
 
 @Entity(EntityEnum.CHURCH)
-@Unique(['name'])
 export class Church extends BaseEntity {
-  @Column({ unique: true })
+  @Column()
   name!: string;
 
   @OneToMany(() => Sector, (sector) => sector.church)

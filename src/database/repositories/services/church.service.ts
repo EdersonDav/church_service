@@ -6,12 +6,6 @@ import { ChurchRepository } from '../interfaces';
 
 @Injectable()
 export class ChurchService implements ChurchRepository {
-  private onConfliteConfig: any = {
-    conflictPaths: ['name'],
-    skipUpdateIfNoValuesChanged: true,
-    upsertType: 'on-conflict-do-update',
-    returning: true,
-  }
   constructor(
     @InjectRepository(Church)
     private readonly entity: TypeORMRepository<Church>
@@ -19,8 +13,7 @@ export class ChurchService implements ChurchRepository {
 
   async save(church: Partial<Church>): Promise<Church> {
     const churchCreated = this.entity.create(church);
-    const a = await this.entity.upsert(churchCreated, this.onConfliteConfig);
-    console.log(a)
-    return churchCreated;
+    const savedChurch = await this.entity.save(churchCreated);
+    return savedChurch;
   }
 }

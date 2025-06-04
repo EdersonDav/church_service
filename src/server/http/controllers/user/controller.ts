@@ -24,7 +24,7 @@ import {
   DeleteUser,
   UpdateUser
 } from '../../../../core/use-cases/user';
-import { AuthGuard } from '../../../../core/use-cases/auth/guard/auth.guard';
+import { AuthGuard } from '../../../../core/use-cases/auth/guards/auth.guard';
 import { ReqUserDecorator } from '../../../../common';
 import { UUID } from 'crypto';
 

@@ -1,5 +1,5 @@
+import { BaseRepository } from './base/base.repository';
 import { Church } from '../../entities/churches.entity';
 
-export abstract class ChurchRepository {
-  abstract save(church: Partial<Church>): Promise<Church>;
+export abstract class ChurchRepository extends BaseRepository<Church> {
 }

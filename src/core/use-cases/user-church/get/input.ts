@@ -1,6 +1,6 @@
 import { UUID } from "crypto";
 
 export class Input {
-    name!: string;
+    church_id!: UUID;
     user_id!: UUID;
 }

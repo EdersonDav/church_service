@@ -7,7 +7,8 @@ import {
   ChurchService,
   VerificationCodeService,
   EmailService,
-  PasswordResetTokenService
+  PasswordResetTokenService,
+  UserChurchService
 } from './repositories/services';
 
 import {
@@ -16,7 +17,8 @@ import {
   ChurchRepository,
   VerificationCodeRepository,
   EmailRepository,
-  PasswordResetTokenRepository
+  PasswordResetTokenRepository,
+  UserChurchRepository
 } from './repositories/interfaces';
 
 import {
@@ -91,6 +93,11 @@ const entities = [
     {
       provide: PasswordResetTokenRepository,
       useClass: PasswordResetTokenService,
+    },
+    UserChurchService,
+    {
+      provide: UserChurchRepository,
+      useClass: UserChurchService,
     }
   ],
   exports: [
@@ -106,6 +113,8 @@ const entities = [
     EmailService,
     PasswordResetTokenRepository,
     PasswordResetTokenService,
+    UserChurchRepository,
+    UserChurchService
   ],
 })
 export class DataBaseModule { }

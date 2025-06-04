@@ -10,9 +10,15 @@ export class UserChurch extends BaseEntity {
   @Column({ type: 'enum', enum: RoleEnum, default: RoleEnum.VOLUNTARY, enumName: 'RoleEnum' })
   role!: RoleEnum;
 
+  @Column({ type: 'uuid' })
+  user_id!: string;
+
   @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user!: User;
+
+  @Column({ type: 'uuid' })
+  church_id!: string;
 
   @ManyToOne(() => Church, (church) => church.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'church_id' })

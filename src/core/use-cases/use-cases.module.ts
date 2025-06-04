@@ -7,6 +7,7 @@ import { UserModule } from './user';
 import { VerificationCodeModule } from './verification-code';
 import { PasswordResetTokenModule } from './password-reset-token';
 import { EmailModule } from './emails';
+import { UserChurchModule } from './user-church';
 
 const modules = [
   TaskModule,
@@ -15,7 +16,8 @@ const modules = [
   VerificationCodeModule,
   EmailModule,
   PasswordResetTokenModule,
-  AuthModule
+  AuthModule,
+  UserChurchModule,
 ];
 
 @Module({
