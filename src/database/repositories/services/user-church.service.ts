@@ -30,4 +30,8 @@ export class UserChurchService implements UserChurchRepository {
     const savedUserChurch = await this.entity.save(userChurchCreated);
     return savedUserChurch;
   }
+
+  async delete(id: string): Promise<void> {
+    await this.entity.delete(id);
+  }
 }

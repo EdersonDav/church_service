@@ -7,12 +7,12 @@ import {
   Param,
   Get,
   NotFoundException,
-  SerializeOptions
+  Delete
 } from '@nestjs/common';
-import { CreateChurch } from '../../../../core/use-cases/church';
+import { CreateChurch, DeleteChurch } from '../../../../core/use-cases/church';
 import { CreateUserChurch, GetUserChurch } from '../../../../core/use-cases/user-church';
 import { CreateChurchResponseData, CreateChurchBody, GetChurchUserResponse } from '../../dtos';
-import { AuthGuard } from '../../../../core/use-cases/auth/guards';
+import { AuthGuard, ChurchRoleGuard } from '../../../../core/use-cases/auth/guards';
 import { UUID } from 'crypto';
 import { ReqUserDecorator } from '../../../../common';
 import { RoleEnum } from '../../../../enums';
@@ -23,7 +23,8 @@ export class ChurchController {
   constructor(
     private readonly createChurch: CreateChurch,
     private readonly createUserChurch: CreateUserChurch,
-    private readonly getUserChurch: GetUserChurch
+    private readonly getUserChurch: GetUserChurch,
+    private readonly deleteChurch: DeleteChurch
   ) { }
 
   @Post('')
@@ -72,5 +73,17 @@ export class ChurchController {
     return plainToClass(GetChurchUserResponse, data, {
       excludeExtraneousValues: true
     });
+  }
+
+  @Delete(':church_id')
+  @UseGuards(AuthGuard, ChurchRoleGuard)
+  async delete(
+    @Param('church_id') church_id: UUID,
+  ): Promise<{ message: string }> {
+    await this.deleteChurch.execute({
+      church_id
+    });
+
+    return { message: 'Church deleted successfully' };
   }
 }

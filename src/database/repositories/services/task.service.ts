@@ -21,4 +21,8 @@ export class TaskService implements TaskRepository {
     await this.entity.upsert(taskCreated, this.onConfliteConfig);
     return taskCreated;
   }
+
+  async delete(id: string): Promise<void> {
+    await this.entity.delete(id);
+  }
 }

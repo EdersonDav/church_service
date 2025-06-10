@@ -16,4 +16,8 @@ export class ChurchService implements ChurchRepository {
     const savedChurch = await this.entity.save(churchCreated);
     return savedChurch;
   }
+
+  async delete(id: string): Promise<void> {
+    await this.entity.delete(id);
+  }
 }

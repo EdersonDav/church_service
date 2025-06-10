@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CreateChurch } from './create';
+import { DeleteChurch } from './delete';
 import { DataBaseModule } from '../../../database';
 
 
@@ -7,7 +8,7 @@ import { DataBaseModule } from '../../../database';
   imports: [
     DataBaseModule,
   ],
-  providers: [CreateChurch],
-  exports: [CreateChurch],
+  providers: [CreateChurch, DeleteChurch],
+  exports: [CreateChurch, DeleteChurch],
 })
 export class ChurchModule { }
