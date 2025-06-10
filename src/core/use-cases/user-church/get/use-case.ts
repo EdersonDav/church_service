@@ -9,7 +9,10 @@ export class GetUserChurch {
     private userChurchService: UserChurchRepository
   ) { }
   async execute(input: Input): Promise<Output> {
-    const data = await this.userChurchService.getByUserAndChurch(input.user_id, input.church_id);
+    const data = await this.userChurchService.getByUserAndChurch(
+      input.user_id,
+      input.church_id
+    );
     return {
       data
     };

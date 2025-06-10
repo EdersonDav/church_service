@@ -16,6 +16,10 @@ export class UserChurchService implements UserChurchRepository {
       where: {
         user_id,
         church_id
+      },
+      relations: {
+        church: true,
+        user: true
       }
     });
   }
