@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository as TypeORMRepository } from 'typeorm';
 import { UserChurch } from '../../entities';
 import { UserChurchRepository } from '../interfaces';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class UserChurchService implements UserChurchRepository {
@@ -11,7 +12,7 @@ export class UserChurchService implements UserChurchRepository {
     private readonly entity: TypeORMRepository<UserChurch>
   ) { }
 
-  async getByUserAndChurch(user_id: string, church_id: string): Promise<UserChurch | null> {
+  async getByUserAndChurch(user_id: UUID, church_id: UUID): Promise<UserChurch | null> {
     return await this.entity.findOne({
       where: {
         user_id,

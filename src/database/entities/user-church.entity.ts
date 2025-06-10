@@ -3,6 +3,7 @@ import { BaseEntity } from './base';
 import { RoleEnum, EntityEnum } from '../../enums';
 import { User } from './users.entity';
 import { Church } from './churches.entity';
+import { UUID } from 'crypto';
 
 @Entity(EntityEnum.USER_CHURCH)
 @Unique('user_church_unique', ['user', 'church'])
@@ -11,14 +12,14 @@ export class UserChurch extends BaseEntity {
   role!: RoleEnum;
 
   @Column({ type: 'uuid' })
-  user_id!: string;
+  user_id!: UUID;
 
   @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
   @Column({ type: 'uuid' })
-  church_id!: string;
+  church_id!: UUID;
 
   @ManyToOne(() => Church, (church) => church.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'church_id' })

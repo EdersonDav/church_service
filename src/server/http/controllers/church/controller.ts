@@ -6,15 +6,17 @@ import {
   UseGuards,
   Param,
   Get,
-  NotFoundException
+  NotFoundException,
+  SerializeOptions
 } from '@nestjs/common';
 import { CreateChurch } from '../../../../core/use-cases/church';
 import { CreateUserChurch, GetUserChurch } from '../../../../core/use-cases/user-church';
-import { CreateChurchResponseData, CreateChurchBody } from '../../dtos';
+import { CreateChurchResponseData, CreateChurchBody, GetChurchUserResponse } from '../../dtos';
 import { AuthGuard } from '../../../../core/use-cases/auth/guards';
 import { UUID } from 'crypto';
 import { ReqUserDecorator } from '../../../../common';
 import { RoleEnum } from '../../../../enums';
+import { plainToClass } from 'class-transformer';
 
 @Controller('churches')
 export class ChurchController {
@@ -57,7 +59,7 @@ export class ChurchController {
   async get(
     @Param('church_id') church_id: UUID,
     @ReqUserDecorator() user: { id: UUID }
-  ): Promise<any> {
+  ): Promise<GetChurchUserResponse> {
     const { data } = await this.getUserChurch.execute({
       user_id: user.id,
       church_id
@@ -67,6 +69,8 @@ export class ChurchController {
       throw new NotFoundException('Church not found');
     }
 
-    return data;
+    return plainToClass(GetChurchUserResponse, data, {
+      excludeExtraneousValues: true
+    });
   }
 }

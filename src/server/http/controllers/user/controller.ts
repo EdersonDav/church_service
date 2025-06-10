@@ -15,7 +15,7 @@ import {
   CreateUserResponse,
   GetUserParam,
   GetUserResponse,
-  UserData,
+  UserDTO,
   UpdateUserBody
 } from '../../dtos';
 import {
@@ -49,7 +49,7 @@ export class UserController {
       return null;
     }
 
-    return { data: user.data as UserData };
+    return { data: user.data as UserDTO };
   }
 
   @Post('')
@@ -113,6 +113,6 @@ export class UserController {
     if (!userUpdated) {
       throw new Error('Error updating user');
     }
-    return { data: userUpdated as UserData };
+    return { data: userUpdated as UserDTO };
   }
 }
