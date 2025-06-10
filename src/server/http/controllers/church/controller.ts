@@ -55,13 +55,23 @@ export class ChurchController {
       throw new BadRequestException('Error creating church');
     }
 
-    await this.createUserChurch.execute({
-      church_id: data.id,
-      user_id: user.id,
-      role: RoleEnum.ADMIN
-    });
+    try {
+      await this.createUserChurch.execute({
+        church_id: data.id,
+        user_id: user.id,
+        role: RoleEnum.ADMIN
+      });
 
-    return data
+      return data
+    } catch (error) {
+      console.error('Error creating church:', error);
+      await this.deleteChurch.execute({
+        church_id: data.id,
+      });
+
+      throw new BadRequestException('Error creating church');
+
+    }
   }
 
   @Get(':church_id')

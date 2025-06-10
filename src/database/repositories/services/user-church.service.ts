@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository as TypeORMRepository } from 'typeorm';
-import { UserChurch } from '../../entities';
+import { Church, User, UserChurch } from '../../entities';
 import { UserChurchRepository } from '../interfaces';
 import { UUID } from 'crypto';
 
@@ -27,11 +27,32 @@ export class UserChurchService implements UserChurchRepository {
 
   async save(userChurch: Partial<UserChurch>): Promise<UserChurch> {
     const userChurchCreated = this.entity.create(userChurch);
-    const savedUserChurch = await this.entity.save(userChurchCreated);
-    return savedUserChurch;
+    await this.entity.upsert(userChurchCreated, {
+      conflictPaths: ['user_id', 'church_id'],
+      skipUpdateIfNoValuesChanged: true,
+      upsertType: 'on-conflict-do-update'
+    });
+    return userChurchCreated
   }
 
   async delete(id: string): Promise<void> {
     await this.entity.delete(id);
+  }
+
+  async getChurchMembers(church_id: UUID): Promise<{ church: Partial<Church>; members: Partial<User>[] }> {
+    const members = await this.entity.find({
+      where: {
+        church_id
+      },
+      relations: {
+        user: true,
+        church: true
+      }
+    });
+
+    return {
+      church: members[0]?.church,
+      members: members.map(member => member.user)
+    };
   }
 }

@@ -17,7 +17,7 @@ Next step
 
 ---
 
-- crud church
+- crud church - ok
 - add members in the church, set default voluntary
 - set others members as a admin
   -- only church admin can set others user as admin

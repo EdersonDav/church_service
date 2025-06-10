@@ -13,8 +13,7 @@ export class CreateTableParticipants1736538348780 implements MigrationInterface 
                         type: 'uuid',
                         isPrimary: true,
                         generationStrategy: 'uuid',
-                        isUnique: true,
-                        default: 'uuid_generate_v4()', 
+                        default: 'uuid_generate_v4()',
                         isGenerated: true,
                     },
                     {

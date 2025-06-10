@@ -13,8 +13,7 @@ export class CreateUserTaskIntermatiateTable1736538027717 implements MigrationIn
                         type: 'uuid',
                         isPrimary: true,
                         generationStrategy: 'uuid',
-                        isUnique: true,
-                        default: 'uuid_generate_v4()', 
+                        default: 'uuid_generate_v4()',
                         isGenerated: true,
                     },
                     {

@@ -51,6 +51,8 @@ export class LoginController {
 
     const { data: { access_token } } = await this.createToken.execute({ id: user.id });
 
+    console.log('access_token', access_token)
+
     res.setHeader('Authorization', `Bearer ${access_token}`);
 
     return res.status(200).send({ data: { email, name } });
@@ -128,4 +130,3 @@ export class LoginController {
     }
   }
 }
-// validate-reset-token

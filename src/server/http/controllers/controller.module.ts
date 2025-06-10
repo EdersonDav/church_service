@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { CoreModule } from '../../../core/core.module';
 import { LoginController } from './auth';
 import { TaskController } from './tasks';
-import { ChurchController } from './church';
+import { ChurchController, MembersController } from './church';
 import { UserController } from './user';
 import { VerificationCodeController } from './verify-code';
 
@@ -13,6 +13,7 @@ import { VerificationCodeController } from './verify-code';
     TaskController,
     ChurchController,
     UserController,
+    MembersController,
     VerificationCodeController
   ],
 })
