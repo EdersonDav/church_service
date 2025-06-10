@@ -1,2 +1,2 @@
-export * from './user.dto';
-export * from './church.dto';
+export * from './church'
+export * from './users'

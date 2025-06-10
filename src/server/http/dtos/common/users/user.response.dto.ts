@@ -2,7 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { UUID } from 'crypto';
 
-export class UserDTO {
+export class ResponseUserDTO {
     @ApiProperty({ description: 'User ID' })
     @Expose()
     id!: UUID;

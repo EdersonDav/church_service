@@ -7,16 +7,24 @@ import {
   Param,
   Get,
   NotFoundException,
-  Delete
+  Delete,
+  Patch
 } from '@nestjs/common';
-import { CreateChurch, DeleteChurch } from '../../../../core/use-cases/church';
+import { plainToClass } from 'class-transformer';
+
+import { CreateChurch, DeleteChurch, UpdateChurch } from '../../../../core/use-cases/church';
 import { CreateUserChurch, GetUserChurch } from '../../../../core/use-cases/user-church';
-import { CreateChurchResponseData, CreateChurchBody, GetChurchUserResponse } from '../../dtos';
+import {
+  CreateChurchResponseData,
+  CreateChurchBody,
+  GetChurchUserResponse,
+  UpdateChurchBody,
+  UpdateChurchResponseData
+} from '../../dtos';
 import { AuthGuard, ChurchRoleGuard } from '../../../../core/use-cases/auth/guards';
 import { UUID } from 'crypto';
 import { ReqUserDecorator } from '../../../../common';
 import { RoleEnum } from '../../../../enums';
-import { plainToClass } from 'class-transformer';
 
 @Controller('churches')
 export class ChurchController {
@@ -24,7 +32,8 @@ export class ChurchController {
     private readonly createChurch: CreateChurch,
     private readonly createUserChurch: CreateUserChurch,
     private readonly getUserChurch: GetUserChurch,
-    private readonly deleteChurch: DeleteChurch
+    private readonly deleteChurch: DeleteChurch,
+    private readonly updateChurch: UpdateChurch
   ) { }
 
   @Post('')
@@ -85,5 +94,29 @@ export class ChurchController {
     });
 
     return { message: 'Church deleted successfully' };
+  }
+
+  @Patch(':church_id')
+  @UseGuards(AuthGuard, ChurchRoleGuard)
+  async update(
+    @Param('church_id') church_id: UUID,
+    @Body() body: UpdateChurchBody
+  ): Promise<UpdateChurchResponseData> {
+    if (!body.name) {
+      throw new BadRequestException('Name is necessary');
+    }
+
+    const { data } = await this.updateChurch.execute({
+      church_id,
+      church_data: body
+    });
+
+    if (!data?.id) {
+      throw new BadRequestException('Error updating church');
+    }
+
+    return plainToClass(UpdateChurchResponseData, data, {
+      excludeExtraneousValues: true
+    });
   }
 }

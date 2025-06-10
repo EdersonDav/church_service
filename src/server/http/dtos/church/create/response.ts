@@ -1,3 +1,3 @@
-import { ChurchDTO } from '../../common';
+import { ResponseChurchDTO } from '../../common';
 
-export class CreateChurchResponseData extends ChurchDTO { }
+export class CreateChurchResponseData extends ResponseChurchDTO { }

@@ -8,6 +8,9 @@ export class Church extends BaseEntity {
   @Column()
   name!: string;
 
+  @Column({ nullable: true })
+  description?: string;
+
   @OneToMany(() => Sector, (sector) => sector.church)
   sectors?: Sector[];
 }

@@ -1,7 +1,7 @@
 import { Expose, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { UUID } from 'crypto';
-import { ChurchDTO, UserDTO } from '../../common';
+import { ResponseChurchDTO, ResponseUserDTO } from '../../common';
 import { RoleEnum } from '../../../../../enums';
 
 export class GetChurchUserResponse {
@@ -31,12 +31,12 @@ export class GetChurchUserResponse {
 
     @ApiProperty({ description: 'User information' })
     @Expose()
-    @Type(() => UserDTO)
-    user!: UserDTO;
+    @Type(() => ResponseUserDTO)
+    user!: ResponseUserDTO;
 
     @ApiProperty({ description: 'Church information' })
     @Expose()
-    @Type(() => ChurchDTO)
-    church!: ChurchDTO;
+    @Type(() => ResponseChurchDTO)
+    church!: ResponseChurchDTO;
 
 }
