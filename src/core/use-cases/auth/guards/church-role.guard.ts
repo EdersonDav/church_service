@@ -1,7 +1,7 @@
 import {
     CanActivate,
     ExecutionContext,
-    ForbiddenException,
+    UnauthorizedException,
     Injectable,
 } from '@nestjs/common';
 import { GetUserChurch } from '../../user-church/get';
@@ -19,7 +19,7 @@ export class ChurchRoleGuard implements CanActivate {
         const { data: relation } = await this.userChurchService.execute({ user_id: user.id, church_id: churchId });
 
         if (!relation || relation.role === RoleEnum.VOLUNTARY) {
-            throw new ForbiddenException();
+            throw new UnauthorizedException();
         }
         request['userChurch'] = relation;
 

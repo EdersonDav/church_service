@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 
-import { CreateUserChurch, GetUserChurchMembers } from '../../../../../core/use-cases/user-church';
+import { CreateUserChurch, GetUserChurchMembers, GetUserChurch } from '../../../../../core/use-cases/user-church';
 import { GetNotVerifiedUser, GetUser } from '../../../../../core/use-cases/user';
 import {
   BodyMemberDTO,
@@ -25,7 +25,8 @@ export class MembersController {
     private readonly createUserChurch: CreateUserChurch,
     private readonly getUser: GetUser,
     private readonly getNotVerifiedUser: GetNotVerifiedUser,
-    private readonly getUserChurchMembers: GetUserChurchMembers
+    private readonly getUserChurchMembers: GetUserChurchMembers,
+    private readonly getUserChurch: GetUserChurch
   ) { }
 
   @Post('')
@@ -71,4 +72,29 @@ export class MembersController {
     });
   }
 
+  @Post('make_admin/:member_id')
+  @UseGuards(AuthGuard, ChurchRoleGuard)
+  async makeAdmin(
+    @Param('church_id') church_id: UUID,
+    @Param('member_id') member_id: UUID,
+  ): Promise<{ message: string }> {
+    const { data: member } = await this.getUser.execute({ search_data: member_id, search_by: 'id' });
+    if (!member || !member.email) {
+      throw new BadRequestException('Invalid Member');
+    }
+
+    const { data: isMember } = await this.getUserChurch.execute({ church_id, user_id: member_id });
+
+    if (!isMember) {
+      throw new BadRequestException('Invalid Member');
+    }
+
+    await this.createUserChurch.execute({
+      church_id: church_id,
+      user_id: member_id,
+      role: RoleEnum.ADMIN
+    });
+
+    return { message: 'Member promoted to admin successfully' };
+  }
 }
