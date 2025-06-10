@@ -5,10 +5,11 @@ import {
   UseGuards,
   Param,
   BadRequestException,
+  Get,
 } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 
-import { CreateUserChurch } from '../../../../../core/use-cases/user-church';
+import { CreateUserChurch, GetUserChurchMembers } from '../../../../../core/use-cases/user-church';
 import { GetNotVerifiedUser, GetUser } from '../../../../../core/use-cases/user';
 import {
   BodyMemberDTO,
@@ -24,6 +25,7 @@ export class MembersController {
     private readonly createUserChurch: CreateUserChurch,
     private readonly getUser: GetUser,
     private readonly getNotVerifiedUser: GetNotVerifiedUser,
+    private readonly getUserChurchMembers: GetUserChurchMembers
   ) { }
 
   @Post('')
@@ -51,4 +53,22 @@ export class MembersController {
 
     return { message: 'Member added successfully' };
   }
+
+  @Get()
+  @UseGuards(AuthGuard, ChurchRoleGuard)
+  async getMembers(
+    @Param('church_id') church_id: UUID,
+  ): Promise<ResponseMembersDTO> {
+    const { data: members } = await this.getUserChurchMembers.execute({ church_id });
+
+    if (!members) {
+      throw new BadRequestException('No members found for this church');
+    }
+
+    return plainToClass(ResponseMembersDTO, {
+      church: members.church,
+      members: members.members
+    });
+  }
+
 }
