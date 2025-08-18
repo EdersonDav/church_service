@@ -4,8 +4,8 @@ import {
     UnauthorizedException,
     Injectable,
 } from '@nestjs/common';
-import { GetUserChurch } from '../../user-church/get';
-import { ChurchRoleEnum } from '../../../../enums';
+import { GetUserChurch } from '../use-cases/user-church/get';
+import { ChurchRoleEnum } from '../../enums';
 
 @Injectable()
 export class ChurchRoleGuard implements CanActivate {

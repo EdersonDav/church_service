@@ -6,13 +6,10 @@ import { Task } from './tasks.entity';
 import { Scale } from './scales.entity';
 
 @Entity(EntityEnum.SECTOR)
-@Unique(['name'])
+@Unique(['name', 'church'])
 export class Sector extends BaseEntity {
   @Column({ unique: true })
   name!: string;
-
-  @Column()
-  church_id!: string;
 
   @ManyToOne(() => Church, (church) => church.sectors, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   church!: Church;

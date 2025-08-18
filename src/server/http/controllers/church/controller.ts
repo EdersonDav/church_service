@@ -21,7 +21,7 @@ import {
   UpdateChurchBody,
   UpdateChurchResponseData
 } from '../../dtos';
-import { AuthGuard, ChurchRoleGuard } from '../../../../core/use-cases/auth/guards';
+import { AuthGuard, ChurchRoleGuard } from '../../../../core/guards';
 import { UUID } from 'crypto';
 import { ReqUserDecorator } from '../../../../common';
 import { ChurchRoleEnum } from '../../../../enums';

@@ -5,7 +5,7 @@ import { ValidateUser } from './validate';
 import { env } from '../../../config';
 import { DataBaseModule } from '../../../database';
 import { UserModule } from '../user';
-import { AuthGuard } from './guards/auth.guard';
+import { AuthGuard } from '../../guards/auth.guard';
 const useCases = [CreateToken, ValidateUser, AuthGuard];
 @Module({
   imports: [
