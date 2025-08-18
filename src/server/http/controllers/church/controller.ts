@@ -24,7 +24,7 @@ import {
 import { AuthGuard, ChurchRoleGuard } from '../../../../core/use-cases/auth/guards';
 import { UUID } from 'crypto';
 import { ReqUserDecorator } from '../../../../common';
-import { RoleEnum } from '../../../../enums';
+import { ChurchRoleEnum } from '../../../../enums';
 
 @Controller('churches')
 export class ChurchController {
@@ -59,7 +59,7 @@ export class ChurchController {
       await this.createUserChurch.execute({
         church_id: data.id,
         user_id: user.id,
-        role: RoleEnum.ADMIN
+        role: ChurchRoleEnum.ADMIN
       });
 
       return data

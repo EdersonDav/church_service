@@ -1,11 +1,11 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
-import { EntityEnum, RoleEnum } from "../../enums";
+import { EntityEnum, ChurchRoleEnum } from "../../enums";
 
 export class CreateUserChurchIntermediateTable1746978800235 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
-            CREATE TYPE "role_enum" AS ENUM (${Array.from(Object.keys(RoleEnum)).map((role) => `'${role}'`).join(', ')})
+            CREATE TYPE "role_enum" AS ENUM (${Array.from(Object.keys(ChurchRoleEnum)).map((role) => `'${role}'`).join(', ')})
         `);
         await queryRunner.createTable(
             new Table({

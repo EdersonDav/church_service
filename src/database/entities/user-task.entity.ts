@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 import { BaseEntity } from './base';
-import { RoleEnum, EntityEnum } from '../../enums';
+import { ChurchRoleEnum, EntityEnum } from '../../enums';
 import { User } from './users.entity';
 import { Task } from './tasks.entity';
 

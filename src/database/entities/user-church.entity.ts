@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 import { BaseEntity } from './base';
-import { RoleEnum, EntityEnum } from '../../enums';
+import { ChurchRoleEnum, EntityEnum } from '../../enums';
 import { User } from './users.entity';
 import { Church } from './churches.entity';
 import { UUID } from 'crypto';
@@ -8,8 +8,8 @@ import { UUID } from 'crypto';
 @Entity(EntityEnum.USER_CHURCH)
 @Unique('user_church_unique', ['user', 'church'])
 export class UserChurch extends BaseEntity {
-  @Column({ type: 'enum', enum: RoleEnum, default: RoleEnum.VOLUNTARY, enumName: 'RoleEnum' })
-  role!: RoleEnum;
+  @Column({ type: 'enum', enum: ChurchRoleEnum, default: ChurchRoleEnum.VOLUNTARY, enumName: 'ChurchRoleEnum' })
+  role!: ChurchRoleEnum;
 
   @Column({ type: 'uuid' })
   user_id!: UUID;

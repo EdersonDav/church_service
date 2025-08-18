@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
-import { EntityEnum, RoleEnum } from "../../enums";
+import { EntityEnum, ChurchRoleEnum } from "../../enums";
 
 export class CreateUserTable1733608780250 implements MigrationInterface {
 

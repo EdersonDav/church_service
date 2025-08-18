@@ -17,7 +17,7 @@ import {
 } from '../../../dtos';
 import { AuthGuard, ChurchRoleGuard } from '../../../../../core/use-cases/auth/guards';
 import { UUID } from 'crypto';
-import { RoleEnum } from '../../../../../enums';
+import { ChurchRoleEnum } from '../../../../../enums';
 
 @Controller('churches/:church_id/members')
 export class MembersController {
@@ -49,7 +49,7 @@ export class MembersController {
     await this.createUserChurch.execute({
       church_id: church_id,
       user_id: body.member_id,
-      role: RoleEnum.VOLUNTARY
+      role: ChurchRoleEnum.VOLUNTARY
     });
 
     return { message: 'Member added successfully' };
@@ -92,7 +92,7 @@ export class MembersController {
     await this.createUserChurch.execute({
       church_id: church_id,
       user_id: member_id,
-      role: RoleEnum.ADMIN
+      role: ChurchRoleEnum.ADMIN
     });
 
     return { message: 'Member promoted to admin successfully' };

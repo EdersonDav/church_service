@@ -5,7 +5,7 @@ import {
     Injectable,
 } from '@nestjs/common';
 import { GetUserChurch } from '../../user-church/get';
-import { RoleEnum } from '../../../../enums';
+import { ChurchRoleEnum } from '../../../../enums';
 
 @Injectable()
 export class ChurchRoleGuard implements CanActivate {
@@ -18,7 +18,7 @@ export class ChurchRoleGuard implements CanActivate {
 
         const { data: relation } = await this.userChurchService.execute({ user_id: user.id, church_id: churchId });
 
-        if (!relation || relation.role === RoleEnum.VOLUNTARY) {
+        if (!relation || relation.role === ChurchRoleEnum.VOLUNTARY) {
             throw new UnauthorizedException();
         }
         request['userChurch'] = relation;

@@ -3,7 +3,7 @@ import { Input } from './input';
 import { Output } from './output';
 import { UserChurchRepository } from '../../../../database/repositories/interfaces';
 import { UUID } from 'crypto';
-import { RoleEnum } from '../../../../enums';
+import { ChurchRoleEnum } from '../../../../enums';
 
 @Injectable()
 export class CreateUserChurch {
@@ -16,7 +16,7 @@ export class CreateUserChurch {
       data: {
         church_id: data.church_id as UUID,
         user_id: data.user_id as UUID,
-        role: data.role as RoleEnum
+        role: data.role as ChurchRoleEnum
       }
     }
   }

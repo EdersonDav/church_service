@@ -1,4 +1,4 @@
-export enum RoleEnum {
+export enum ChurchRoleEnum {
     ADMIN = 'ADMIN',
     VOLUNTARY = 'VOLUNTARY',
     ROOT = 'ROOT'
