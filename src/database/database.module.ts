@@ -8,7 +8,8 @@ import {
   VerificationCodeService,
   EmailService,
   PasswordResetTokenService,
-  UserChurchService
+  UserChurchService,
+  SectorService
 } from './repositories/services';
 
 import {
@@ -18,7 +19,8 @@ import {
   VerificationCodeRepository,
   EmailRepository,
   PasswordResetTokenRepository,
-  UserChurchRepository
+  UserChurchRepository,
+  SectorRepository
 } from './repositories/interfaces';
 
 import {
@@ -98,6 +100,11 @@ const entities = [
     {
       provide: UserChurchRepository,
       useClass: UserChurchService,
+    },
+    SectorService,
+    {
+      provide: SectorRepository,
+      useClass: SectorService,
     }
   ],
   exports: [
@@ -114,7 +121,9 @@ const entities = [
     PasswordResetTokenRepository,
     PasswordResetTokenService,
     UserChurchRepository,
-    UserChurchService
+    UserChurchService,
+    SectorRepository,
+    SectorService
   ],
 })
 export class DataBaseModule { }
