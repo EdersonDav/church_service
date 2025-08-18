@@ -30,4 +30,10 @@ export class ChurchService implements ChurchRepository {
     Object.assign(church, church_set);
     return this.entity.save(church);
   }
+
+  async getBy<K extends keyof Church>(search_value: Church[K], search_by: K): Promise<Church | null> {
+    const churchFound = await this.entity.findOne({ where: { [search_by]: search_value } })
+    return churchFound
+  }
+
 }
