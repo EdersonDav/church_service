@@ -14,9 +14,9 @@ export class ChurchRoleGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
         const user = request.user;
-        const churchId = request.params.church_id;
+        const church_id = request.params.church_id;
 
-        const { data: relation } = await this.userChurchService.execute({ user_id: user.id, church_id: churchId });
+        const { data: relation } = await this.userChurchService.execute({ user_id: user.id, church_id: church_id });
 
         if (!relation || relation.role === ChurchRoleEnum.VOLUNTARY) {
             throw new UnauthorizedException();

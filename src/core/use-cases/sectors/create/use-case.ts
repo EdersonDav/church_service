@@ -13,7 +13,7 @@ export class CreateSector {
     return {
       data: {
         name: data.name,
-        churchId: data.church.id
+        sector_id: data.id
       }
     }
   }

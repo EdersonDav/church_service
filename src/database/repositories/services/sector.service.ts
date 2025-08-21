@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository as TypeORMRepository } from 'typeorm';
 import { Sector } from '../../entities';
 import { SectorRepository } from '../interfaces';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class SectorService implements SectorRepository {
@@ -24,5 +25,19 @@ export class SectorService implements SectorRepository {
 
   async delete(id: string): Promise<void> {
     await this.entity.delete(id);
+  }
+
+  async update(sector_id: UUID, sector_set: Partial<Sector>): Promise<Sector | null> {
+    const sector = await this.entity.findOneBy({ id: sector_id });
+    if (!sector) {
+      return null;
+    }
+    Object.assign(sector, sector_set);
+    return this.entity.save(sector);
+  }
+
+  async getBy<K extends keyof Sector>(search_value: Sector[K], search_by: K): Promise<Sector | null> {
+    const sectorFound = await this.entity.findOne({ where: { [search_by]: search_value } })
+    return sectorFound
   }
 }
