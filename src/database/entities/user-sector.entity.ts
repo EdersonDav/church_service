@@ -7,15 +7,22 @@ import {
 } from 'typeorm';
 import { User } from './users.entity';
 import { Sector } from './sectors.entity';
-import { SectorRoleEnum } from '../../enums';
+import { EntityEnum, SectorRoleEnum } from '../../enums';
 import { BaseEntity } from './base';
+import { UUID } from 'crypto';
 
-@Entity('sector_users')
+@Entity(EntityEnum.USER_SECTOR)
 @Unique(['user', 'sector'])
-export class SectorUser extends BaseEntity {
+export class UserSector extends BaseEntity {
+    @Column({ type: 'uuid' })
+    user_id!: UUID;
+
     @ManyToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user!: User;
+
+    @Column({ type: 'uuid' })
+    sector_id!: UUID;
 
     @ManyToOne(() => Sector, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'sector_id' })

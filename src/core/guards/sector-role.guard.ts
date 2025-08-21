@@ -1,33 +1,36 @@
-import { CanActivate, Injectable } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { GetUserChurch } from "../use-cases/user-church";
+import { ChurchRoleEnum, SectorRoleEnum } from "../../enums";
+import { GetUserSector } from "../use-cases/user-sector";
 
 @Injectable()
 export class SectorGuard implements CanActivate {
     constructor(
-        private userChurchRepo: UserChurchRepository,
-        private sectorUserRepo: SectorUserRepository,
+        private getUserChurch: GetUserChurch,
+        private getUserSector: GetUserSector,
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
-        const user = request.user; // já vem do AuthGuard
-        const sectorId = request.params.sector_id;
+        const user = request.user;
 
-        // Verifica se o usuário é admin da igreja
-        const userChurch = await this.userChurchRepo.findOne({
-            where: { userId: user.id, churchId: request.params.church_id },
+        const userChurch = await this.getUserChurch.execute({
+            user_id: user.id, church_id: request.params.church_id
         });
 
-        if (userChurch?.role === ChurchRoleEnum.ADMIN) {
-            return true; // admin pode tudo
+        if (userChurch?.data?.role === ChurchRoleEnum.ADMIN) {
+            return true;
         }
 
-        // Verifica se o usuário é líder do setor
-        const sectorUser = await this.sectorUserRepo.findOne({
-            where: { userId: user.id, sectorId },
+        const sector_id = request.params.sector_id;
+
+        const sectorUser = await this.getUserSector.execute({
+            user_id: user.id,
+            sector_id: sector_id
         });
 
-        if (sectorUser?.role === SectorRoleEnum.LEADER) {
-            return true; // líder pode gerenciar o setor
+        if (sectorUser?.data?.role === SectorRoleEnum.LEADER) {
+            return true;
         }
 
         throw new UnauthorizedException('Você não tem acesso a este setor');

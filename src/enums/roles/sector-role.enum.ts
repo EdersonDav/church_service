@@ -1,4 +1,5 @@
 export enum SectorRoleEnum {
     LEADER = 'LEADER',
-    MEMBER = 'MEMBER'
+    MEMBER = 'MEMBER',
+    ADMIN = 'ADMIN'
 }

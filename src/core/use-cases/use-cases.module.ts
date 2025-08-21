@@ -8,6 +8,8 @@ import { VerificationCodeModule } from './verification-code';
 import { PasswordResetTokenModule } from './password-reset-token';
 import { EmailModule } from './emails';
 import { UserChurchModule } from './user-church';
+import { SectorModule } from './sectors';
+import { UserSectorModule } from './user-sector';
 
 const modules = [
   TaskModule,
@@ -18,6 +20,8 @@ const modules = [
   PasswordResetTokenModule,
   AuthModule,
   UserChurchModule,
+  SectorModule,
+  UserSectorModule
 ];
 
 @Module({

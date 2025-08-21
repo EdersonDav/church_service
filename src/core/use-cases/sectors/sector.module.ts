@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { CreateTask } from './create';
+import { CreateSector } from './create';
 import { DataBaseModule } from '../../../database';
 
 @Module({
   imports: [
     DataBaseModule,
   ],
-  providers: [CreateTask],
-  exports: [CreateTask],
+  providers: [CreateSector],
+  exports: [CreateSector],
 })
-export class TaskModule { }
+export class SectorModule { }
