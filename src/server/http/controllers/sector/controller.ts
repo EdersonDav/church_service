@@ -86,58 +86,58 @@ export class SectorController {
     }
   }
 
-  @Get(':church_id')
+  @Get(':sector_id')
   @UseGuards(AuthGuard)
   async get(
-    @Param('church_id') church_id: UUID,
+    @Param('sector_id') sector_id: UUID,
     @ReqUserDecorator() user: { id: UUID }
-  ): Promise<GetChurchUserResponse> {
-    const { data } = await this.getUserChurch.execute({
+  ): Promise<GetSectorUserResponse> {
+    const { data } = await this.getUserSector.execute({
       user_id: user.id,
-      church_id
+      sector_id
     });
 
     if (!data) {
       throw new NotFoundException('Church not found');
     }
 
-    return plainToClass(GetChurchUserResponse, data, {
+    return plainToClass(GetSectorUserResponse, data, {
       excludeExtraneousValues: true
     });
   }
 
-  @Delete(':church_id')
-  @UseGuards(AuthGuard, ChurchRoleGuard)
+  @Delete(':sector_id')
+  @UseGuards(AuthGuard, SectorGuard)
   async delete(
-    @Param('church_id') church_id: UUID,
+    @Param('sector_id') sector_id: UUID,
   ): Promise<{ message: string }> {
-    await this.deleteChurch.execute({
-      church_id
+    await this.deleteSector.execute({
+      sector_id
     });
 
-    return { message: 'Church deleted successfully' };
+    return { message: 'Sector deleted successfully' };
   }
 
-  @Patch(':church_id')
-  @UseGuards(AuthGuard, ChurchRoleGuard)
+  @Patch(':sector_id')
+  @UseGuards(AuthGuard, SectorGuard)
   async update(
-    @Param('church_id') church_id: UUID,
-    @Body() body: UpdateChurchBody
-  ): Promise<UpdateChurchResponseData> {
+    @Param('sector_id') sector_id: UUID,
+    @Body() body: UpdateSectorBody
+  ): Promise<UpdateSectorResponseData> {
     if (!body.name) {
       throw new BadRequestException('Name is necessary');
     }
 
-    const { data } = await this.updateChurch.execute({
-      church_id,
-      church_data: body
+    const { data } = await this.updateSector.execute({
+      sector_id,
+      sector_data: body
     });
 
     if (!data?.id) {
-      throw new BadRequestException('Error updating church');
+      throw new BadRequestException('Error updating sector');
     }
 
-    return plainToClass(UpdateChurchResponseData, data, {
+    return plainToClass(UpdateSectorResponseData, data, {
       excludeExtraneousValues: true
     });
   }
