@@ -22,12 +22,19 @@ describe('# Create Task', () => {
     });
 
     const task = {
+        id: faker.string.uuid(),
         name: faker.company.buzzVerb(),
         icon: faker.internet.url(),
-        description: faker.company.buzzAdjective()
+        description: faker.company.buzzAdjective(),
+        sector_id: faker.string.uuid(),
     };
 
-    const input: Input = { ...task };
+    const input: Input = {
+        name: task.name,
+        icon: task.icon,
+        description: task.description,
+        sector_id: task.sector_id,
+    };
 
     it.each([
         {

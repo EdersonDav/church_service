@@ -12,9 +12,11 @@ export class CreateTask {
     const data = await this.taskService.save(input)
     return {
       data: {
+        id: data.id,
         name: data.name,
         description: data?.description || '',
-        icon: data?.icon || ''
+        icon: data?.icon || '',
+        sector_id: data.sector_id,
       }
     }
   }

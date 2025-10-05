@@ -9,7 +9,12 @@ import {
   EmailService,
   PasswordResetTokenService,
   UserChurchService,
-  SectorService
+  SectorService,
+  UserSectorService,
+  ScaleService,
+  ParticipantService,
+  UnavailabilityService,
+  UserTaskService
 } from './repositories/services';
 
 import {
@@ -20,7 +25,12 @@ import {
   EmailRepository,
   PasswordResetTokenRepository,
   UserChurchRepository,
-  SectorRepository
+  SectorRepository,
+  UserSectorRepository,
+  ScaleRepository,
+  ParticipantRepository,
+  UnavailabilityRepository,
+  UserTaskRepository
 } from './repositories/interfaces';
 
 import {
@@ -34,7 +44,8 @@ import {
   UserChurch,
   UserTask,
   VerificationCode,
-  PasswordResetToken
+  PasswordResetToken,
+  UserSector
 } from './entities';
 
 const entities = [
@@ -48,7 +59,8 @@ const entities = [
   UserChurch,
   UserTask,
   VerificationCode,
-  PasswordResetToken
+  PasswordResetToken,
+  UserSector
 ];
 
 @Module({
@@ -105,6 +117,31 @@ const entities = [
     {
       provide: SectorRepository,
       useClass: SectorService,
+    },
+    UserSectorService,
+    {
+      provide: UserSectorRepository,
+      useClass: UserSectorService,
+    },
+    ScaleService,
+    {
+      provide: ScaleRepository,
+      useClass: ScaleService,
+    },
+    ParticipantService,
+    {
+      provide: ParticipantRepository,
+      useClass: ParticipantService,
+    },
+    UnavailabilityService,
+    {
+      provide: UnavailabilityRepository,
+      useClass: UnavailabilityService,
+    },
+    UserTaskService,
+    {
+      provide: UserTaskRepository,
+      useClass: UserTaskService,
     }
   ],
   exports: [
@@ -123,7 +160,17 @@ const entities = [
     UserChurchRepository,
     UserChurchService,
     SectorRepository,
-    SectorService
+    SectorService,
+    UserSectorRepository,
+    UserSectorService,
+    ScaleRepository,
+    ScaleService,
+    ParticipantRepository,
+    ParticipantService,
+    UnavailabilityRepository,
+    UnavailabilityService,
+    UserTaskRepository,
+    UserTaskService
   ],
 })
 export class DataBaseModule { }

@@ -10,6 +10,9 @@ import { EmailModule } from './emails';
 import { UserChurchModule } from './user-church';
 import { SectorModule } from './sectors';
 import { UserSectorModule } from './user-sector';
+import { ScaleModule } from './scales';
+import { UnavailabilityModule } from './unavailability';
+import { UserTaskModule } from './user-task';
 
 const modules = [
   TaskModule,
@@ -21,7 +24,10 @@ const modules = [
   AuthModule,
   UserChurchModule,
   SectorModule,
-  UserSectorModule
+  UserSectorModule,
+  ScaleModule,
+  UnavailabilityModule,
+  UserTaskModule
 ];
 
 @Module({
