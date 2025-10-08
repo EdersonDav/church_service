@@ -10,6 +10,15 @@ import {
   Delete,
   Patch
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { plainToClass } from 'class-transformer';
 
 import { CreateChurch, DeleteChurch, UpdateChurch } from '../../../../core/use-cases/church';
@@ -26,6 +35,8 @@ import { UUID } from 'crypto';
 import { ReqUserDecorator } from '../../../../common';
 import { ChurchRoleEnum } from '../../../../enums';
 
+@ApiTags('Igrejas')
+@ApiBearerAuth()
 @Controller('churches')
 export class ChurchController {
   constructor(
@@ -38,6 +49,32 @@ export class ChurchController {
 
   @Post('')
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Criar uma nova igreja' })
+  @ApiBody({
+    type: CreateChurchBody,
+    description: 'Dados para criação da igreja',
+    examples: {
+      default: {
+        summary: 'Igreja local',
+        value: {
+          name: 'Igreja Vida em Cristo',
+          description: 'Comunidade localizada no centro da cidade',
+        },
+      },
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'Igreja criada com sucesso',
+    schema: {
+      example: {
+        id: 'e8c7a0b9-7a0c-4f1d-8a3e-5f3c1e6b3a1f',
+        name: 'Igreja Vida em Cristo',
+        description: 'Comunidade localizada no centro da cidade',
+        created_at: '2024-05-11T12:00:00.000Z',
+        updated_at: '2024-05-11T12:00:00.000Z',
+      },
+    },
+  })
   async create(
     @Body() body: CreateChurchBody,
     @ReqUserDecorator() user: { id: UUID }
@@ -76,6 +113,21 @@ export class ChurchController {
 
   @Get(':church_id')
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Consultar dados da igreja vinculada ao usuário' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiOkResponse({
+    description: 'Dados da igreja retornados com sucesso',
+    schema: {
+      example: {
+        id: 'e8c7a0b9-7a0c-4f1d-8a3e-5f3c1e6b3a1f',
+        name: 'Igreja Vida em Cristo',
+        description: 'Comunidade localizada no centro da cidade',
+        created_at: '2024-05-11T12:00:00.000Z',
+        updated_at: '2024-05-11T12:00:00.000Z',
+        role: 'ADMIN',
+      },
+    },
+  })
   async get(
     @Param('church_id') church_id: UUID,
     @ReqUserDecorator() user: { id: UUID }
@@ -96,6 +148,16 @@ export class ChurchController {
 
   @Delete(':church_id')
   @UseGuards(AuthGuard, ChurchRoleGuard)
+  @ApiOperation({ summary: 'Excluir uma igreja' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiOkResponse({
+    description: 'Igreja excluída com sucesso',
+    schema: {
+      example: {
+        message: 'Church deleted successfully',
+      },
+    },
+  })
   async delete(
     @Param('church_id') church_id: UUID,
   ): Promise<{ message: string }> {
@@ -108,6 +170,33 @@ export class ChurchController {
 
   @Patch(':church_id')
   @UseGuards(AuthGuard, ChurchRoleGuard)
+  @ApiOperation({ summary: 'Atualizar informações da igreja' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiBody({
+    type: UpdateChurchBody,
+    description: 'Campos que podem ser atualizados',
+    examples: {
+      default: {
+        summary: 'Alteração do nome',
+        value: {
+          name: 'Igreja Vida em Cristo - Centro',
+          description: 'Comunidade localizada no centro da cidade',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Igreja atualizada com sucesso',
+    schema: {
+      example: {
+        id: 'e8c7a0b9-7a0c-4f1d-8a3e-5f3c1e6b3a1f',
+        name: 'Igreja Vida em Cristo - Centro',
+        description: 'Comunidade localizada no centro da cidade',
+        created_at: '2024-05-11T12:00:00.000Z',
+        updated_at: '2024-06-01T10:00:00.000Z',
+      },
+    },
+  })
   async update(
     @Param('church_id') church_id: UUID,
     @Body() body: UpdateChurchBody

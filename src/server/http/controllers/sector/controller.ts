@@ -10,6 +10,15 @@ import {
   Delete,
   Patch
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { plainToClass } from 'class-transformer';
 
 import {
@@ -27,6 +36,8 @@ import { CreateSector, UpdateSector, DeleteSector } from '../../../../core/use-c
 import { CreateUserSector, GetUserSector } from '../../../../core/use-cases/user-sector';
 import { GetChurch } from '../../../../core/use-cases/church/get';
 
+@ApiTags('Setores')
+@ApiBearerAuth()
 @Controller(':church_id/sectors')
 export class SectorController {
   constructor(
@@ -40,6 +51,32 @@ export class SectorController {
 
   @Post('')
   @UseGuards(AuthGuard, SectorGuard)
+  @ApiOperation({ summary: 'Criar um novo setor na igreja' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiBody({
+    type: CreateSectorBody,
+    description: 'Dados para criação do setor',
+    examples: {
+      default: {
+        summary: 'Setor de música',
+        value: {
+          name: 'Ministério de Louvor',
+        },
+      },
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'Setor criado com sucesso',
+    schema: {
+      example: {
+        id: 'a7b5d4c2-6f8e-4b3a-9d2c-1e0f5a6b7c8d',
+        name: 'Ministério de Louvor',
+        church_id: 'e8c7a0b9-7a0c-4f1d-8a3e-5f3c1e6b3a1f',
+        created_at: '2024-05-11T12:00:00.000Z',
+        updated_at: '2024-05-11T12:00:00.000Z',
+      },
+    },
+  })
   async create(
     @Body() body: CreateSectorBody,
     @ReqUserDecorator() user: { id: UUID },
@@ -88,6 +125,19 @@ export class SectorController {
 
   @Get(':sector_id')
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Consultar dados do setor vinculado ao usuário' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String, required: false })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
+  @ApiOkResponse({
+    description: 'Setor encontrado com sucesso',
+    schema: {
+      example: {
+        id: 'a7b5d4c2-6f8e-4b3a-9d2c-1e0f5a6b7c8d',
+        name: 'Ministério de Louvor',
+        role: 'ADMIN',
+      },
+    },
+  })
   async get(
     @Param('sector_id') sector_id: UUID,
     @ReqUserDecorator() user: { id: UUID }
@@ -108,6 +158,16 @@ export class SectorController {
 
   @Delete(':sector_id')
   @UseGuards(AuthGuard, SectorGuard)
+  @ApiOperation({ summary: 'Remover um setor' })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
+  @ApiOkResponse({
+    description: 'Setor removido com sucesso',
+    schema: {
+      example: {
+        message: 'Sector deleted successfully',
+      },
+    },
+  })
   async delete(
     @Param('sector_id') sector_id: UUID,
   ): Promise<{ message: string }> {
@@ -120,6 +180,32 @@ export class SectorController {
 
   @Patch(':sector_id')
   @UseGuards(AuthGuard, SectorGuard)
+  @ApiOperation({ summary: 'Atualizar informações de um setor' })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
+  @ApiBody({
+    type: UpdateSectorBody,
+    description: 'Campos que podem ser atualizados',
+    examples: {
+      default: {
+        summary: 'Atualização do nome',
+        value: {
+          name: 'Ministério de Louvor Jovem',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Setor atualizado com sucesso',
+    schema: {
+      example: {
+        id: 'a7b5d4c2-6f8e-4b3a-9d2c-1e0f5a6b7c8d',
+        name: 'Ministério de Louvor Jovem',
+        church_id: 'e8c7a0b9-7a0c-4f1d-8a3e-5f3c1e6b3a1f',
+        created_at: '2024-05-11T12:00:00.000Z',
+        updated_at: '2024-06-01T10:00:00.000Z',
+      },
+    },
+  })
   async update(
     @Param('sector_id') sector_id: UUID,
     @Body() body: UpdateSectorBody
