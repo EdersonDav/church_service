@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository as TypeORMRepository } from 'typeorm';
 import { Task } from '../../entities';
 import { TaskRepository } from '../interfaces';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class TaskService implements TaskRepository {
@@ -20,7 +21,7 @@ export class TaskService implements TaskRepository {
     await this.entity.delete(id);
   }
 
-  async findById(id: string): Promise<Task | null> {
+  async findById(id: UUID): Promise<Task | null> {
     return this.entity.findOne({ where: { id } });
   }
 
@@ -28,7 +29,7 @@ export class TaskService implements TaskRepository {
     return this.entity.find({ where: { sector_id } });
   }
 
-  async update(task_id: string, task_set: Partial<Task>): Promise<Task | null> {
+  async update(task_id: UUID, task_set: Partial<Task>): Promise<Task | null> {
     const task = await this.entity.findOne({ where: { id: task_id } });
     if (!task) {
       return null;

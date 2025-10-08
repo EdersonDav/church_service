@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository as TypeORMRepository } from 'typeorm';
 import { Scale } from '../../entities';
 import { ScaleRepository } from '../interfaces';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class ScaleService implements ScaleRepository {
@@ -22,7 +23,7 @@ export class ScaleService implements ScaleRepository {
 
   async findById(scale_id: string): Promise<Scale | null> {
     return this.entity.findOne({
-      where: { id: scale_id },
+      where: { id: scale_id as UUID },
       relations: {
         sector: true,
         participants: {
@@ -55,7 +56,7 @@ export class ScaleService implements ScaleRepository {
   }
 
   async update(scale_id: string, data: Partial<Scale>): Promise<Scale | null> {
-    const scale = await this.entity.findOne({ where: { id: scale_id } });
+    const scale = await this.entity.findOne({ where: { id: scale_id as UUID } });
     if (!scale) {
       return null;
     }
