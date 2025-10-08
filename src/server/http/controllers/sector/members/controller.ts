@@ -17,38 +17,39 @@ import {
 } from '@nestjs/swagger';
 import { plainToClass } from 'class-transformer';
 
-import { CreateUserChurch, GetUserChurchMembers, GetUserChurch } from '../../../../../core/use-cases/user-church';
+import { CreateUserSector, GetUserSectorMembers } from '../../../../../core/use-cases/user-sector';
 import { GetNotVerifiedUser, GetUser } from '../../../../../core/use-cases/user';
-import {
-  BodyMemberDTO,
-  ResponseMembersDTO
-} from '../../../dtos';
-import { AuthGuard, ChurchRoleGuard } from '../../../../../core/guards';
+import { BodyMemberDTO, ResponseSectorMembersDTO } from '../../../dtos';
+import { AuthGuard, SectorGuard } from '../../../../../core/guards';
 import { UUID } from 'crypto';
-import { ChurchRoleEnum } from '../../../../../enums';
+import { SectorRoleEnum } from '../../../../../enums';
+import { GetUserChurch } from '../../../../../core/use-cases/user-church';
+import { GetSector } from '../../../../../core/use-cases/sectors/get';
 
-@ApiTags('Membros da Igreja')
+@ApiTags('Membros do Setor')
 @ApiBearerAuth()
-@Controller('churches/:church_id/members')
-export class MembersController {
+@Controller('churches/:church_id/sectors/:sector_id/members')
+export class SectorMembersController {
   constructor(
-    private readonly createUserChurch: CreateUserChurch,
+    private readonly createUserSector: CreateUserSector,
     private readonly getUser: GetUser,
     private readonly getNotVerifiedUser: GetNotVerifiedUser,
-    private readonly getUserChurchMembers: GetUserChurchMembers,
-    private readonly getUserChurch: GetUserChurch
+    private readonly getUserSectorMembers: GetUserSectorMembers,
+    private readonly getUserChurch: GetUserChurch,
+    private readonly getSector: GetSector,
   ) { }
 
   @Post('')
-  @UseGuards(AuthGuard, ChurchRoleGuard)
-  @ApiOperation({ summary: 'Adicionar um membro à igreja' })
+  @UseGuards(AuthGuard, SectorGuard)
+  @ApiOperation({ summary: 'Adicionar um membro ao setor' })
   @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
   @ApiBody({
     type: BodyMemberDTO,
-    description: 'Identificador do membro que será vinculado à igreja',
+    description: 'Identificador do membro que será vinculado ao setor',
     examples: {
       default: {
-        summary: 'Vincular membro existente',
+        summary: 'Vincular membro existente ao setor',
         value: {
           member_id: '9dd66e36-9a45-4fcf-8e83-291bdfe7c1b8',
         },
@@ -56,17 +57,28 @@ export class MembersController {
     },
   })
   @ApiOkResponse({
-    description: 'Membro adicionado com sucesso',
+    description: 'Membro adicionado ao setor com sucesso',
     schema: {
       example: {
-        message: 'Member added successfully',
+        message: 'Member added to sector successfully',
       },
     },
   })
   async addMember(
     @Body() body: BodyMemberDTO,
     @Param('church_id') church_id: UUID,
+    @Param('sector_id') sector_id: UUID,
   ): Promise<{ message: string; }> {
+    const { data: sector } = await this.getSector.execute({ search_by: 'id', search_data: sector_id });
+
+    if (!sector) {
+      throw new BadRequestException('Sector not found');
+    }
+
+    if (sector.church?.id && sector.church.id !== church_id) {
+      throw new BadRequestException('Sector does not belong to this church');
+    }
+
     const { data: member } = await this.getUser.execute({ search_data: body.member_id, search_by: 'id' });
     if (!member || !member.email) {
       throw new BadRequestException('Invalid Member');
@@ -78,26 +90,33 @@ export class MembersController {
       throw new BadRequestException('Member is not verified');
     }
 
-    await this.createUserChurch.execute({
-      church_id: church_id,
+    const { data: churchMember } = await this.getUserChurch.execute({ church_id, user_id: body.member_id });
+
+    if (!churchMember) {
+      throw new BadRequestException('Member is not part of this church');
+    }
+
+    await this.createUserSector.execute({
+      sector_id,
       user_id: body.member_id,
-      role: ChurchRoleEnum.VOLUNTARY
+      role: SectorRoleEnum.MEMBER,
     });
 
-    return { message: 'Member added successfully' };
+    return { message: 'Member added to sector successfully' };
   }
 
   @Get()
-  @UseGuards(AuthGuard, ChurchRoleGuard)
-  @ApiOperation({ summary: 'Listar membros cadastrados na igreja' })
+  @UseGuards(AuthGuard, SectorGuard)
+  @ApiOperation({ summary: 'Listar membros cadastrados no setor' })
   @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
   @ApiOkResponse({
-    description: 'Lista de membros retornada com sucesso',
+    description: 'Lista de membros do setor retornada com sucesso',
     schema: {
       example: {
-        church: {
-          id: 'e8c7a0b9-7a0c-4f1d-8a3e-5f3c1e6b3a1f',
-          name: 'Igreja Vida em Cristo',
+        sector: {
+          id: 'a7b5d4c2-6f8e-4b3a-9d2c-1e0f5a6b7c8d',
+          name: 'Ministério de Louvor',
         },
         members: [
           {
@@ -112,53 +131,23 @@ export class MembersController {
   })
   async getMembers(
     @Param('church_id') church_id: UUID,
-  ): Promise<ResponseMembersDTO> {
-    const { data: members } = await this.getUserChurchMembers.execute({ church_id });
+    @Param('sector_id') sector_id: UUID,
+  ): Promise<ResponseSectorMembersDTO> {
+    const { data: sector } = await this.getSector.execute({ search_by: 'id', search_data: sector_id });
 
-    if (!members) {
-      throw new BadRequestException('No members found for this church');
+    if (!sector) {
+      throw new BadRequestException('Sector not found');
     }
 
-    return plainToClass(ResponseMembersDTO, {
-      church: members.church,
-      members: members.members
+    if (sector.church?.id && sector.church.id !== church_id) {
+      throw new BadRequestException('Sector does not belong to this church');
+    }
+
+    const { data: members } = await this.getUserSectorMembers.execute({ sector_id });
+
+    return plainToClass(ResponseSectorMembersDTO, {
+      sector,
+      members: members?.members ?? [],
     });
-  }
-
-  @Post('make_admin/:member_id')
-  @UseGuards(AuthGuard, ChurchRoleGuard)
-  @ApiOperation({ summary: 'Promover um membro ao papel de administrador' })
-  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
-  @ApiParam({ name: 'member_id', description: 'Identificador do membro', type: String })
-  @ApiOkResponse({
-    description: 'Membro promovido com sucesso',
-    schema: {
-      example: {
-        message: 'Member promoted to admin successfully',
-      },
-    },
-  })
-  async makeAdmin(
-    @Param('church_id') church_id: UUID,
-    @Param('member_id') member_id: UUID,
-  ): Promise<{ message: string }> {
-    const { data: member } = await this.getUser.execute({ search_data: member_id, search_by: 'id' });
-    if (!member || !member.email) {
-      throw new BadRequestException('Invalid Member');
-    }
-
-    const { data: isMember } = await this.getUserChurch.execute({ church_id, user_id: member_id });
-
-    if (!isMember) {
-      throw new BadRequestException('Invalid Member');
-    }
-
-    await this.createUserChurch.execute({
-      church_id: church_id,
-      user_id: member_id,
-      role: ChurchRoleEnum.ADMIN
-    });
-
-    return { message: 'Member promoted to admin successfully' };
   }
 }

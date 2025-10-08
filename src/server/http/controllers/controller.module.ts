@@ -5,7 +5,7 @@ import { TaskController } from './tasks';
 import { ChurchController, MembersController } from './church';
 import { UserController } from './user';
 import { VerificationCodeController } from './verify-code';
-import { SectorController } from './sector';
+import { SectorController, SectorMembersController } from './sector';
 import { ScaleController } from './scale';
 
 @Module({
@@ -18,6 +18,7 @@ import { ScaleController } from './scale';
     MembersController,
     VerificationCodeController,
     SectorController,
+    SectorMembersController,
     ScaleController,
   ],
 })
