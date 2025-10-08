@@ -1,4 +1,13 @@
 import { Body, Controller, Post, UnauthorizedException, Res, Get, Query } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 import { CreateToken } from '../../../../core/use-cases/auth/create';
 import { ValidateUser } from '../../../../core/use-cases/auth/validate';
@@ -18,6 +27,7 @@ import {
   UpdatePasswordQuery
 } from '../../dtos';
 
+@ApiTags('Autenticação')
 @Controller('auth')
 export class LoginController {
   constructor(
@@ -32,6 +42,39 @@ export class LoginController {
   ) { }
 
   @Post('login')
+  @ApiOperation({ summary: 'Autenticar usuário e gerar token JWT' })
+  @ApiBody({
+    type: LoginBody,
+    description: 'Credenciais do usuário',
+    examples: {
+      default: {
+        summary: 'Login com e-mail e senha',
+        value: {
+          email: 'maria.souza@example.com',
+          password: 'Strong#Password1',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Usuário autenticado com sucesso',
+    schema: {
+      example: {
+        data: {
+          email: 'maria.souza@example.com',
+          name: 'Maria Souza',
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Credenciais inválidas ou e-mail não verificado',
+    schema: {
+      example: {
+        message: 'Verify your email',
+      },
+    },
+  })
   async login(
     @Body() body: LoginBody,
     @Res() res: Response
@@ -58,6 +101,25 @@ export class LoginController {
   }
 
   @Get('validate-reset-token')
+  @ApiOperation({ summary: 'Validar token de recuperação de senha' })
+  @ApiQuery({ name: 'token', description: 'Token de recuperação recebido por e-mail', type: String })
+  @ApiQuery({ name: 'email', description: 'E-mail associado ao token', type: String })
+  @ApiOkResponse({
+    description: 'Token válido',
+    schema: {
+      example: {
+        message: 'ok',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Token inválido ou expirado',
+    schema: {
+      example: {
+        message: 'Token expired',
+      },
+    },
+  })
   async getValidateResetToken(
     @Query() query: CheckTokenQuery,
     @Res() res: Response
@@ -76,6 +138,27 @@ export class LoginController {
   }
 
   @Post('forgot-password')
+  @ApiOperation({ summary: 'Gerar e enviar token de redefinição de senha' })
+  @ApiBody({
+    type: ForgotPassBody,
+    description: 'E-mail para envio do token de recuperação',
+    examples: {
+      default: {
+        summary: 'Solicitação de redefinição',
+        value: {
+          email: 'maria.souza@example.com',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Solicitação processada com sucesso',
+    schema: {
+      example: {
+        message: 'Verify your email',
+      },
+    },
+  })
   async forgotPass(
     @Body() { email }: ForgotPassBody
   ): Promise<ForgotPasswordResponseData> {
@@ -103,6 +186,29 @@ export class LoginController {
   }
 
   @Post('update-password')
+  @ApiOperation({ summary: 'Atualizar senha utilizando token de recuperação' })
+  @ApiQuery({ name: 'token', description: 'Token de recuperação válido', type: String })
+  @ApiBody({
+    type: UpdatePasswordBody,
+    description: 'Dados para redefinição de senha',
+    examples: {
+      default: {
+        summary: 'Redefinição de senha',
+        value: {
+          email: 'maria.souza@example.com',
+          password: 'NewStrong#Password2',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Resultado da atualização de senha',
+    schema: {
+      example: {
+        message: 'Password updated',
+      },
+    },
+  })
   async updatePass(
     @Query() { token }: UpdatePasswordQuery,
     @Body() { email, password }: UpdatePasswordBody,

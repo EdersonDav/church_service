@@ -1,4 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { VerifyCodeBody, VerifyCodeResponse } from '../../dtos';
 
 import { VerifyCode } from '../../../../core/use-cases/verification-code/verify';
@@ -6,6 +7,7 @@ import { DeleteCode } from '../../../../core/use-cases/verification-code/delete-
 import { GetUser } from '../../../../core/use-cases/user/get';
 import { MarkAsVerifiedUser } from '../../../../core/use-cases/user/mark-as-verify';
 
+@ApiTags('Verificação de Código')
 @Controller('verify-code/user')
 export class VerificationCodeController {
   constructor(
@@ -16,6 +18,30 @@ export class VerificationCodeController {
   ) { }
 
   @Post('')
+  @ApiOperation({ summary: 'Validar código de verificação enviado por e-mail' })
+  @ApiBody({
+    type: VerifyCodeBody,
+    description: 'Código recebido por e-mail e e-mail do usuário',
+    examples: {
+      default: {
+        summary: 'Validação de código',
+        value: {
+          email: 'maria.souza@example.com',
+          code: '123456',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Resultado da validação do código',
+    schema: {
+      example: {
+        data: {
+          message: 'User verified successfully',
+        },
+      },
+    },
+  })
   async create(
     @Body() {code, email}: VerifyCodeBody
   ): Promise<VerifyCodeResponse> {

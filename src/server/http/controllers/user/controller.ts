@@ -11,6 +11,14 @@ import {
   Put,
   UseGuards
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { plainToClass } from 'class-transformer';
 import { CreateVerificationCode } from '../../../../core/use-cases/verification-code/create';
 import { SendUserAlreadyExists, SendVerifyCode } from '../../../../core/use-cases/emails';
@@ -45,6 +53,7 @@ import { AuthGuard } from '../../../../core/guards/auth.guard';
 import { ReqUserDecorator } from '../../../../common';
 import { UUID } from 'crypto';
 
+@ApiTags('Usuários')
 @Controller('users')
 export class UserController {
   constructor(
@@ -63,6 +72,22 @@ export class UserController {
   ) { }
 
   @Get(':email')
+  @ApiOperation({ summary: 'Buscar usuário pelo e-mail' })
+  @ApiParam({ name: 'email', description: 'E-mail do usuário', type: String })
+  @ApiOkResponse({
+    description: 'Usuário recuperado com sucesso',
+    schema: {
+      example: {
+        data: {
+          id: 'c7d1435a-2308-4a4c-9f36-3c0dca1b7f4d',
+          name: 'Maria Souza',
+          email: 'maria.souza@example.com',
+          birthday: '1990-05-12',
+          is_verified: true,
+        },
+      },
+    },
+  })
   async get(
     @Param('email') email: GetUserParam['email']
   ): Promise<GetUserResponse | null> {
@@ -75,6 +100,30 @@ export class UserController {
   }
 
   @Post('')
+  @ApiOperation({ summary: 'Registrar um novo usuário' })
+  @ApiBody({
+    type: CreateUserBody,
+    description: 'Dados utilizados para cadastro do usuário',
+    examples: {
+      default: {
+        summary: 'Cadastro com dados válidos',
+        value: {
+          name: 'Maria Souza',
+          email: 'maria.souza@example.com',
+          password: 'Strong#Password1',
+          birthday: '1990-05-12',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Resultado do processo de cadastro',
+    schema: {
+      example: {
+        message: 'Verify your email',
+      },
+    },
+  })
   async create(
     @Body() body: CreateUserBody
   ): Promise<CreateUserResponse> {
@@ -116,6 +165,25 @@ export class UserController {
 
   @Get(':id/tasks')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar tarefas vinculadas ao usuário' })
+  @ApiParam({ name: 'id', description: 'Identificador do usuário', type: String })
+  @ApiOkResponse({
+    description: 'Tarefas retornadas com sucesso',
+    schema: {
+      example: {
+        tasks: [
+          {
+            id: '0b752e60-0f75-4314-b9f4-1f0d4a1f4f23',
+            name: 'Ministro de Louvor',
+            icon: 'https://cdn.example.com/icons/worship.png',
+            description: 'Responsável por conduzir o louvor',
+            sector_id: 'f8f1e6d8-9e58-4d0e-94dc-70f6e0a3b2f5',
+          },
+        ],
+      },
+    },
+  })
   async getTasks(
     @Param('id') id: string,
     @ReqUserDecorator() user: { id: UUID }
@@ -133,6 +201,45 @@ export class UserController {
 
   @Put(':id/tasks')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Definir tarefas vinculadas ao usuário' })
+  @ApiParam({ name: 'id', description: 'Identificador do usuário', type: String })
+  @ApiBody({
+    type: UpdateUserTasksBody,
+    description: 'Lista de tarefas atribuídas ao usuário',
+    examples: {
+      default: {
+        summary: 'Definição de tarefas',
+        value: {
+          task_ids: [
+            '0b752e60-0f75-4314-b9f4-1f0d4a1f4f23',
+            '1c2d3e4f-5a6b-7c8d-9e0f-1234567890ab',
+          ],
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Tarefas atualizadas com sucesso',
+    schema: {
+      example: {
+        tasks: [
+          {
+            id: '0b752e60-0f75-4314-b9f4-1f0d4a1f4f23',
+            name: 'Ministro de Louvor',
+            icon: 'https://cdn.example.com/icons/worship.png',
+            description: 'Responsável por conduzir o louvor',
+            sector_id: 'f8f1e6d8-9e58-4d0e-94dc-70f6e0a3b2f5',
+          },
+          {
+            id: '1c2d3e4f-5a6b-7c8d-9e0f-1234567890ab',
+            name: 'Baterista',
+            sector_id: 'f8f1e6d8-9e58-4d0e-94dc-70f6e0a3b2f5',
+          },
+        ],
+      },
+    },
+  })
   async updateTasks(
     @Param('id') id: string,
     @Body() body: UpdateUserTasksBody,
@@ -154,6 +261,22 @@ export class UserController {
 
   @Get(':id/unavailability')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar indisponibilidades cadastradas para o usuário' })
+  @ApiParam({ name: 'id', description: 'Identificador do usuário', type: String })
+  @ApiOkResponse({
+    description: 'Lista de indisponibilidades retornada com sucesso',
+    schema: {
+      example: {
+        items: [
+          {
+            id: 'd51c7c49-03f1-4243-9b27-77c7c3d3dfd5',
+            date: '2024-07-01T00:00:00.000Z',
+          },
+        ],
+      },
+    },
+  })
   async listUnavailability(
     @Param('id') id: string,
     @ReqUserDecorator() user: { id: UUID }
@@ -171,6 +294,30 @@ export class UserController {
 
   @Post(':id/unavailability')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Registrar uma nova indisponibilidade para o usuário' })
+  @ApiParam({ name: 'id', description: 'Identificador do usuário', type: String })
+  @ApiBody({
+    type: CreateUnavailabilityBody,
+    description: 'Data da indisponibilidade em formato ISO 8601',
+    examples: {
+      default: {
+        summary: 'Indisponibilidade para viajar',
+        value: {
+          date: '2024-07-01T00:00:00.000Z',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Indisponibilidade criada com sucesso',
+    schema: {
+      example: {
+        id: 'd51c7c49-03f1-4243-9b27-77c7c3d3dfd5',
+        date: '2024-07-01T00:00:00.000Z',
+      },
+    },
+  })
   async createUnavailabilityHandler(
     @Param('id') id: string,
     @Body() body: CreateUnavailabilityBody,
@@ -198,6 +345,18 @@ export class UserController {
 
   @Delete(':id/unavailability/:unavailability_id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remover uma indisponibilidade cadastrada' })
+  @ApiParam({ name: 'id', description: 'Identificador do usuário', type: String })
+  @ApiParam({ name: 'unavailability_id', description: 'Identificador da indisponibilidade', type: String })
+  @ApiOkResponse({
+    description: 'Indisponibilidade removida com sucesso',
+    schema: {
+      example: {
+        message: 'Unavailability removed',
+      },
+    },
+  })
   async deleteUnavailabilityHandler(
     @Param('id') id: string,
     @Param('unavailability_id') unavailability_id: string,
@@ -222,6 +381,36 @@ export class UserController {
 
   @Patch(':id')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Atualizar dados do usuário autenticado' })
+  @ApiParam({ name: 'id', description: 'Identificador do usuário', type: String })
+  @ApiBody({
+    type: UpdateUserBody,
+    description: 'Campos permitidos para atualização',
+    examples: {
+      default: {
+        summary: 'Atualização de nome e data de nascimento',
+        value: {
+          name: 'Maria S. Oliveira',
+          birthday: '1991-03-20',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Usuário atualizado com sucesso',
+    schema: {
+      example: {
+        data: {
+          id: 'c7d1435a-2308-4a4c-9f36-3c0dca1b7f4d',
+          name: 'Maria S. Oliveira',
+          email: 'maria.souza@example.com',
+          birthday: '1991-03-20',
+          is_verified: true,
+        },
+      },
+    },
+  })
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateUserBody,
