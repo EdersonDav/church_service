@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, OneToOne, Unique } from 'typeorm';
+import { Column, Entity, OneToMany, Unique } from 'typeorm';
 import { BaseEntity } from './base';
 import { EntityEnum } from '../../enums';
 import { Unavailability } from './unavailability.entity';
@@ -21,8 +21,8 @@ export class User extends BaseEntity {
   @OneToMany(() => Unavailability, (unavailability) => unavailability.user)
   unavailability?: Unavailability[];
 
-  @OneToOne(() => Participant, (participant) => participant.user)
-  participant?: Participant;
+  @OneToMany(() => Participant, (participant) => participant.user)
+  participants?: Participant[];
 
   @Column({ default: false })
   is_verified!: boolean;

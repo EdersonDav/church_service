@@ -6,3 +6,5 @@ export * from './verify-code';
 export * from './members';
 export * from './common';
 export * from './sector';
+export * from './scales';
+export * from './unavailability';

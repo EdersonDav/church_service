@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 import { BaseEntity } from './base';
 import { EntityEnum } from '../../enums';
 import { User } from './users.entity';
@@ -9,9 +9,10 @@ export class Unavailability extends BaseEntity {
   @Column({ type: 'timestamp' })
   date!: Date;
 
-  @Column({ unique: true })
+  @Column({ type: 'uuid' })
   user_id!: string;
 
-  @ManyToOne(() => User, (user) => user.unavailability)
+  @ManyToOne(() => User, (user) => user.unavailability, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
   user!: User;
 }

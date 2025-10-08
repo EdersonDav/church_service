@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToMany, ManyToOne, OneToOne, Unique } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, Unique } from 'typeorm';
 import { BaseEntity } from './base';
 import { EntityEnum } from '../../enums';
 import { Sector } from './sectors.entity';
@@ -23,6 +23,6 @@ export class Task extends BaseEntity {
   @ManyToOne(() => Sector, (sector) => sector.tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   sector!: Sector;
 
-  @OneToOne(() => Participant, (participant) => participant.task)
-  participant!: Participant;
+  @OneToMany(() => Participant, (participant) => participant.task)
+  participants?: Participant[];
 }

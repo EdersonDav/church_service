@@ -37,7 +37,10 @@ export class SectorService implements SectorRepository {
   }
 
   async getBy<K extends keyof Sector>(search_value: Sector[K], search_by: K): Promise<Sector | null> {
-    const sectorFound = await this.entity.findOne({ where: { [search_by]: search_value } })
+    const sectorFound = await this.entity.findOne({
+      where: { [search_by]: search_value },
+      relations: { church: true }
+    });
     return sectorFound
   }
 }
