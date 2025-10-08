@@ -9,6 +9,7 @@ async function bootstrap() {
     .setTitle('Gerenciamento de escalas')
     .setDescription('API voltada para gerenciamento de escalas nos cultos')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);

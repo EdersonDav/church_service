@@ -8,7 +8,7 @@ import { UUID } from 'crypto';
 @Injectable()
 export class SectorService implements SectorRepository {
   private onConflictConfig: any = {
-    conflictPaths: ['name', 'church'],
+    conflictPaths: ['name', 'church_id'],
     skipUpdateIfNoValuesChanged: true,
     upsertType: 'on-conflict-do-update',
   }
@@ -18,8 +18,12 @@ export class SectorService implements SectorRepository {
   ) { }
 
   async save(sector: Partial<Sector>): Promise<Sector> {
+    const alreadyExistsInThisChurch = await this.entity.findOneBy({ name: sector.name, church_id: sector.church_id });
+    if (alreadyExistsInThisChurch) {
+      return alreadyExistsInThisChurch;
+    }
     const sectorCreated = this.entity.create(sector);
-    await this.entity.upsert(sectorCreated, this.onConflictConfig);
+    await this.entity.save(sectorCreated);
     return sectorCreated;
   }
 

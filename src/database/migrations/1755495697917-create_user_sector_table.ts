@@ -13,6 +13,8 @@ export class CreateUserSectorTable1755495697917 implements MigrationInterface {
         "user_id" uuid NOT NULL,
         "sector_id" uuid NOT NULL,
         "role" "sector_role_enum" NOT NULL DEFAULT 'MEMBER',
+        created_at TIMESTAMP NOT NULL DEFAULT now(),
+        updated_at TIMESTAMP NOT NULL DEFAULT now(),
         CONSTRAINT "UQ_user_sector" UNIQUE ("user_id", "sector_id"),
         CONSTRAINT "FK_user" FOREIGN KEY ("user_id") REFERENCES ${EntityEnum.USER}("id") ON DELETE CASCADE,
         CONSTRAINT "FK_sector" FOREIGN KEY ("sector_id") REFERENCES ${EntityEnum.SECTOR}("id") ON DELETE CASCADE

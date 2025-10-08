@@ -3,11 +3,13 @@ import { CreateChurch } from './create';
 import { DeleteChurch } from './delete';
 import { DataBaseModule } from '../../../database';
 import { UpdateChurch } from './update';
+import { GetChurch } from './get';
 
 const useCases = [
   CreateChurch,
   DeleteChurch,
-  UpdateChurch
+  UpdateChurch,
+  GetChurch
 ]
 
 @Module({
