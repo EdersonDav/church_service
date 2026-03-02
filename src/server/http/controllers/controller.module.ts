@@ -7,6 +7,10 @@ import { UserController } from './user';
 import { VerificationCodeController } from './verify-code';
 import { SectorController, SectorMembersController } from './sector';
 import { ScaleController } from './scale';
+import { ExtraEventController } from './extra-events';
+import { SongController } from './songs';
+import { MinisterController } from './ministers';
+import { ScaleSongController } from './scale/songs';
 
 @Module({
   imports: [CoreModule],
@@ -20,6 +24,10 @@ import { ScaleController } from './scale';
     SectorController,
     SectorMembersController,
     ScaleController,
+    ScaleSongController,
+    SongController,
+    MinisterController,
+    ExtraEventController,
   ],
 })
 export class ControllerModule { }

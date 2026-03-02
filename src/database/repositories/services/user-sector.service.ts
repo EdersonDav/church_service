@@ -39,6 +39,30 @@ export class UserSectorService implements UserSectorRepository {
     await this.entity.delete(id);
   }
 
+  async deleteByUserAndSector(user_id: UUID, sector_id: UUID): Promise<void> {
+    await this.entity.delete({
+      user_id,
+      sector_id,
+    });
+  }
+
+  async deleteByUserAndChurch(user_id: UUID, church_id: UUID): Promise<void> {
+    const relations = await this.entity.find({
+      where: { user_id },
+      relations: { sector: true },
+    });
+
+    const idsToDelete = relations
+      .filter((relation) => relation.sector?.church_id === church_id)
+      .map((relation) => relation.id);
+
+    if (!idsToDelete.length) {
+      return;
+    }
+
+    await this.entity.delete(idsToDelete);
+  }
+
   async getSectorMembers(sector_id: UUID): Promise<{ sector: Partial<Sector>; members: Partial<User>[] }> {
     const members = await this.entity.find({
       where: {

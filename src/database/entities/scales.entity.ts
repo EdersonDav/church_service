@@ -3,6 +3,7 @@ import { BaseEntity } from './base';
 import { EntityEnum } from '../../enums';
 import { Sector } from './sectors.entity';
 import { Participant } from './participants.entity';
+import { ScaleSong } from './scale-songs.entity';
 
 @Entity(EntityEnum.SCALE)
 @Unique(['sector_id', 'date'])
@@ -18,4 +19,7 @@ export class Scale extends BaseEntity {
 
   @OneToMany(() => Participant, (participant) => participant.scale)
   participants?: Participant[];
+
+  @OneToMany(() => ScaleSong, (scale_song) => scale_song.scale)
+  songs?: ScaleSong[];
 }

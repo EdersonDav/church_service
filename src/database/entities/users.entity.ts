@@ -5,6 +5,7 @@ import { Unavailability } from './unavailability.entity';
 import { Participant } from './participants.entity';
 import { VerificationCode } from './verification-code.entity';
 import { PasswordResetToken } from './password-reset-token.entity';
+import { Minister } from './ministers.entity';
 
 @Entity(EntityEnum.USER)
 @Unique(['email'])
@@ -32,6 +33,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => PasswordResetToken, (t) => t.user)
   reset_tokens?: PasswordResetToken[];
+
+  @OneToMany(() => Minister, (minister) => minister.user)
+  ministers?: Minister[];
 
   @Column({ type: 'date', nullable: true, default: null })
   birthday?: Date | null;

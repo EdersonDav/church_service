@@ -4,6 +4,9 @@ import { env } from '../config';
 import {
   UserService,
   TaskService,
+  SongService,
+  MinisterService,
+  MinisterSongKeyService,
   ChurchService,
   VerificationCodeService,
   EmailService,
@@ -14,11 +17,16 @@ import {
   ScaleService,
   ParticipantService,
   UnavailabilityService,
-  UserTaskService
+  UserTaskService,
+  ExtraEventService,
+  ScaleSongService
 } from './repositories/services';
 
 import {
   TaskRepository,
+  SongRepository,
+  MinisterRepository,
+  MinisterSongKeyRepository,
   UserRepository,
   ChurchRepository,
   VerificationCodeRepository,
@@ -30,11 +38,16 @@ import {
   ScaleRepository,
   ParticipantRepository,
   UnavailabilityRepository,
-  UserTaskRepository
+  UserTaskRepository,
+  ExtraEventRepository,
+  ScaleSongRepository
 } from './repositories/interfaces';
 
 import {
   Task,
+  Song,
+  Minister,
+  MinisterSongKey,
   User,
   Church,
   Participant,
@@ -45,12 +58,17 @@ import {
   UserTask,
   VerificationCode,
   PasswordResetToken,
-  UserSector
+  UserSector,
+  ExtraEvent,
+  ScaleSong
 } from './entities';
 
 const entities = [
   User,
   Task,
+  Song,
+  Minister,
+  MinisterSongKey,
   Church,
   Participant,
   Scale,
@@ -60,7 +78,9 @@ const entities = [
   UserTask,
   VerificationCode,
   PasswordResetToken,
-  UserSector
+  UserSector,
+  ExtraEvent,
+  ScaleSong
 ];
 
 @Module({
@@ -87,6 +107,21 @@ const entities = [
     {
       provide: TaskRepository,
       useClass: TaskService
+    },
+    SongService,
+    {
+      provide: SongRepository,
+      useClass: SongService
+    },
+    MinisterService,
+    {
+      provide: MinisterRepository,
+      useClass: MinisterService,
+    },
+    MinisterSongKeyService,
+    {
+      provide: MinisterSongKeyRepository,
+      useClass: MinisterSongKeyService,
     },
     ChurchService,
     {
@@ -142,6 +177,16 @@ const entities = [
     {
       provide: UserTaskRepository,
       useClass: UserTaskService,
+    },
+    ExtraEventService,
+    {
+      provide: ExtraEventRepository,
+      useClass: ExtraEventService,
+    },
+    ScaleSongService,
+    {
+      provide: ScaleSongRepository,
+      useClass: ScaleSongService,
     }
   ],
   exports: [
@@ -149,6 +194,12 @@ const entities = [
     UserService,
     TaskRepository,
     TaskService,
+    SongRepository,
+    SongService,
+    MinisterRepository,
+    MinisterService,
+    MinisterSongKeyRepository,
+    MinisterSongKeyService,
     ChurchRepository,
     ChurchService,
     VerificationCodeRepository,
@@ -170,7 +221,11 @@ const entities = [
     UnavailabilityRepository,
     UnavailabilityService,
     UserTaskRepository,
-    UserTaskService
+    UserTaskService,
+    ExtraEventRepository,
+    ExtraEventService,
+    ScaleSongRepository,
+    ScaleSongService
   ],
 })
 export class DataBaseModule { }

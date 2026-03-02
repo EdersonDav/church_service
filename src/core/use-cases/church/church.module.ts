@@ -4,12 +4,14 @@ import { DeleteChurch } from './delete';
 import { DataBaseModule } from '../../../database';
 import { UpdateChurch } from './update';
 import { GetChurch } from './get';
+import { ListChurches } from './list';
 
 const useCases = [
   CreateChurch,
   DeleteChurch,
   UpdateChurch,
-  GetChurch
+  GetChurch,
+  ListChurches
 ]
 
 @Module({

@@ -5,4 +5,5 @@ export class FakeChurchRepository implements ChurchRepository {
   delete = jest.fn();
   update = jest.fn();
   getBy = jest.fn();
+  list = jest.fn();
 }

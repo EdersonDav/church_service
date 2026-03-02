@@ -13,6 +13,11 @@ import { UserSectorModule } from './user-sector';
 import { ScaleModule } from './scales';
 import { UnavailabilityModule } from './unavailability';
 import { UserTaskModule } from './user-task';
+import { ExtraEventModule } from './extra-events';
+import { SongModule } from './songs';
+import { MinisterModule } from './ministers';
+import { MinisterSongKeyModule } from './minister-song-keys';
+import { ScaleSongModule } from './scale-songs';
 
 const modules = [
   TaskModule,
@@ -27,7 +32,12 @@ const modules = [
   UserSectorModule,
   ScaleModule,
   UnavailabilityModule,
-  UserTaskModule
+  UserTaskModule,
+  ExtraEventModule,
+  SongModule,
+  MinisterModule,
+  MinisterSongKeyModule,
+  ScaleSongModule,
 ];
 
 @Module({

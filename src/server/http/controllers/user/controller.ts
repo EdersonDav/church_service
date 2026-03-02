@@ -432,4 +432,36 @@ export class UserController {
     }
     return { data: userUpdated as ResponseUserDTO };
   }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Excluir conta do usuário autenticado' })
+  @ApiParam({ name: 'id', description: 'Identificador do usuário', type: String })
+  @ApiOkResponse({
+    description: 'Usuário removido com sucesso',
+    schema: {
+      example: {
+        message: 'User deleted successfully',
+      },
+    },
+  })
+  async delete(
+    @Param('id') id: string,
+    @ReqUserDecorator() user: { id: UUID }
+  ): Promise<{ message: string }> {
+    if (user.id !== id) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const { data: currentUser } = await this.getUser.execute({ search_by: 'id', search_data: id });
+
+    if (!currentUser?.email) {
+      throw new BadRequestException('User not found');
+    }
+
+    await this.deleteUser.execute({ email: currentUser.email });
+
+    return { message: 'User deleted successfully' };
+  }
 }

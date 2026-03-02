@@ -37,15 +37,23 @@ Este documento mapeia o que já está implementado no backend hoje, com foco em 
 2. Criador da igreja vira **ADMIN da igreja** automaticamente.
 3. Admin adiciona membros na igreja: `POST /churches/:church_id/members`.
 4. Admin pode promover membro para admin da igreja: `POST /churches/:church_id/members/make_admin/:member_id`.
-5. Admin cria setor da igreja: `POST /:church_id/sectors`.
-6. Criador do setor recebe vínculo de **ADMIN do setor**.
-7. Admin da igreja pode definir papel do membro no setor: `PATCH /churches/:church_id/sectors/:sector_id/members/:member_id/role`.
-8. Admin do setor adiciona membros ao setor: `POST /churches/:church_id/sectors/:sector_id/members`.
-9. Usuário define suas tarefas no perfil: `PUT /users/:id/tasks`.
-10. Admin do setor cria tarefas: `POST /churches/:church_id/sectors/:sector_id/tasks`.
-11. Admin do setor cria escala: `POST /churches/:church_id/sectors/:sector_id/scales`.
-12. Admin do setor aloca participantes na escala: `PATCH /churches/:church_id/sectors/:sector_id/scales/:scale_id/participants`.
-13. Usuário mantém indisponibilidades: `POST /users/:id/unavailability`.
+5. Admin pode remover membro da igreja: `DELETE /churches/:church_id/members/:member_id`.
+6. Admin cria setor da igreja: `POST /:church_id/sectors`.
+7. Criador do setor recebe vínculo de **ADMIN do setor**.
+8. Admin da igreja pode definir papel do membro no setor: `PATCH /churches/:church_id/sectors/:sector_id/members/:member_id/role`.
+9. Admin do setor adiciona membros ao setor: `POST /churches/:church_id/sectors/:sector_id/members`.
+10. Admin do setor pode remover membro do setor: `DELETE /churches/:church_id/sectors/:sector_id/members/:member_id`.
+11. Usuário define suas tarefas no perfil: `PUT /users/:id/tasks`.
+12. Admin do setor cria tarefas: `POST /churches/:church_id/sectors/:sector_id/tasks`.
+13. Admin do setor cria escala: `POST /churches/:church_id/sectors/:sector_id/scales`.
+14. Admin do setor aloca participantes na escala: `PATCH /churches/:church_id/sectors/:sector_id/scales/:scale_id/participants`.
+15. Usuário mantém indisponibilidades: `POST /users/:id/unavailability`.
+16. Admin da igreja cria evento extra: `POST /churches/:church_id/events`.
+17. Membros da igreja podem consultar eventos: `GET /churches/:church_id/events`.
+18. Admin da igreja cadastra músicas: `POST /churches/:church_id/songs`.
+19. Admin da igreja registra ministro: `POST /churches/:church_id/ministers`.
+20. Ministro define tons personalizados: `PUT /churches/:church_id/ministers/me/song-keys`.
+21. Admin do setor define repertório da escala: `PUT /churches/:church_id/sectors/:sector_id/scales/:scale_id/songs`.
 
 ## 3) Segurança e permissões
 
@@ -79,6 +87,7 @@ Nas rotas de perfil (`/users/:id/...`), além do JWT, o código verifica se `id`
 |---|---|---|---|
 | POST | `/users` | Não | Cadastro |
 | GET | `/users/:email` | Não | Busca usuário por e-mail |
+| DELETE | `/users/:id` | Sim | Somente o próprio usuário |
 | PATCH | `/users/:id` | Sim | Somente o próprio usuário |
 | GET | `/users/:id/tasks` | Sim | Somente o próprio usuário |
 | PUT | `/users/:id/tasks` | Sim | Somente o próprio usuário |
@@ -90,6 +99,7 @@ Nas rotas de perfil (`/users/:id/...`), além do JWT, o código verifica se `id`
 
 | Método | Rota | Auth | Regra |
 |---|---|---|---|
+| GET | `/churches` | Sim | Usuário autenticado |
 | POST | `/churches` | Sim | Usuário autenticado |
 | GET | `/churches/:church_id` | Sim | Usuário precisa estar vinculado à igreja |
 | PATCH | `/churches/:church_id` | Sim | `ChurchRoleGuard` |
@@ -97,6 +107,7 @@ Nas rotas de perfil (`/users/:id/...`), além do JWT, o código verifica se `id`
 | POST | `/churches/:church_id/members` | Sim | `ChurchRoleGuard` |
 | GET | `/churches/:church_id/members` | Sim | `ChurchRoleGuard` |
 | POST | `/churches/:church_id/members/make_admin/:member_id` | Sim | `ChurchRoleGuard` |
+| DELETE | `/churches/:church_id/members/:member_id` | Sim | `ChurchRoleGuard` |
 
 ## 4.4 Setores e membros do setor
 
@@ -110,6 +121,7 @@ Nas rotas de perfil (`/users/:id/...`), além do JWT, o código verifica se `id`
 | POST | `/churches/:church_id/sectors/:sector_id/members` | Sim | `SectorGuard` |
 | GET | `/churches/:church_id/sectors/:sector_id/members` | Sim | `SectorGuard` |
 | PATCH | `/churches/:church_id/sectors/:sector_id/members/:member_id/role` | Sim | `ChurchRoleGuard` |
+| DELETE | `/churches/:church_id/sectors/:sector_id/members/:member_id` | Sim | `SectorGuard` |
 
 ## 4.5 Tarefas do setor
 
@@ -131,6 +143,43 @@ Nas rotas de perfil (`/users/:id/...`), além do JWT, o código verifica se `id`
 | PATCH | `/churches/:church_id/sectors/:sector_id/scales/:scale_id` | Sim | `SectorGuard` |
 | PATCH | `/churches/:church_id/sectors/:sector_id/scales/:scale_id/participants` | Sim | `SectorGuard` |
 | DELETE | `/churches/:church_id/sectors/:sector_id/scales/:scale_id` | Sim | `SectorGuard` |
+
+## 4.7 Eventos extras da igreja
+
+| Método | Rota | Auth | Regra |
+|---|---|---|---|
+| POST | `/churches/:church_id/events` | Sim | `ChurchRoleGuard` |
+| GET | `/churches/:church_id/events` | Sim | Membro da igreja |
+| GET | `/churches/:church_id/events/:event_id` | Sim | Membro da igreja |
+| PATCH | `/churches/:church_id/events/:event_id` | Sim | `ChurchRoleGuard` |
+| DELETE | `/churches/:church_id/events/:event_id` | Sim | `ChurchRoleGuard` |
+
+## 4.8 Músicas da igreja
+
+| Método | Rota | Auth | Regra |
+|---|---|---|---|
+| POST | `/churches/:church_id/songs` | Sim | `ChurchRoleGuard` |
+| GET | `/churches/:church_id/songs` | Sim | Membro da igreja |
+| GET | `/churches/:church_id/songs/:song_id` | Sim | Membro da igreja |
+| PATCH | `/churches/:church_id/songs/:song_id` | Sim | `ChurchRoleGuard` |
+| DELETE | `/churches/:church_id/songs/:song_id` | Sim | `ChurchRoleGuard` |
+
+## 4.9 Ministros e tons personalizados
+
+| Método | Rota | Auth | Regra |
+|---|---|---|---|
+| POST | `/churches/:church_id/ministers` | Sim | `ChurchRoleGuard` |
+| GET | `/churches/:church_id/ministers` | Sim | Membro da igreja |
+| DELETE | `/churches/:church_id/ministers/:minister_id` | Sim | `ChurchRoleGuard` |
+| GET | `/churches/:church_id/ministers/me/song-keys` | Sim | Ministro (próprio usuário) |
+| PUT | `/churches/:church_id/ministers/me/song-keys` | Sim | Ministro (próprio usuário) |
+
+## 4.10 Músicas da escala (tom aplicado)
+
+| Método | Rota | Auth | Regra |
+|---|---|---|---|
+| GET | `/churches/:church_id/sectors/:sector_id/scales/:scale_id/songs` | Sim | Membro da igreja **ou** do setor |
+| PUT | `/churches/:church_id/sectors/:sector_id/scales/:scale_id/songs` | Sim | `SectorGuard` |
 
 ## 5) Regras de negócio já implementadas
 
@@ -156,6 +205,15 @@ Nas rotas de perfil (`/users/:id/...`), além do JWT, o código verifica se `id`
 - Indisponibilidade tem unicidade por usuário + data.
 - Ao criar indisponibilidade, o sistema bloqueia se o usuário já estiver escalado naquela data.
 - Tarefas do usuário também são sincronizadas (adiciona/remove conforme lista enviada).
+- Evento extra sempre pertence a uma igreja (`church_id`) e não pode ser manipulado em rota de outra igreja.
+- Criação/edição/remoção de evento extra exige papel com permissão na igreja (`ChurchRoleGuard`).
+- Músicas (`songs`) pertencem à igreja e têm tom padrão (`default_key`).
+- Ministros são usuários vinculados à igreja (`ministers`) e podem salvar tom personalizado por música (`minister_song_keys`).
+- Ao definir músicas da escala (`scale_songs`), o sistema aplica:
+  - tom personalizado do ministro escalado, se existir,
+  - ou tom padrão da música, caso contrário.
+- Se houver mais de um ministro escalado, o endpoint exige `minister_id` para decidir qual biblioteca aplicar.
+- Ao alterar participantes da escala, os tons das músicas da escala são recalculados automaticamente.
 
 ## 6) Modelo de dados (entidades principais)
 
@@ -164,6 +222,11 @@ Nas rotas de perfil (`/users/:id/...`), além do JWT, o código verifica se `id`
 - `Sector`
 - `Task`
 - `Scale`
+- `ExtraEvent`
+- `Song`
+- `Minister`
+- `MinisterSongKey`
+- `ScaleSong`
 - `Participant` (liga `Scale + User + Task`)
 - `UserChurch` (vínculo usuário-igreja com `role`)
 - `UserSector` (vínculo usuário-setor com `role`)
@@ -175,11 +238,16 @@ Nas rotas de perfil (`/users/:id/...`), além do JWT, o código verifica se `id`
 Relações-chave:
 
 - Igreja 1:N Setores.
+- Igreja 1:N Eventos extras.
+- Igreja 1:N Músicas.
+- Igreja 1:N Ministros.
 - Setor 1:N Tarefas e 1:N Escalas.
 - Escala 1:N Participantes.
+- Escala 1:N Músicas da escala (`ScaleSong`).
 - Usuário N:N Igreja (`UserChurch`) com papel.
 - Usuário N:N Setor (`UserSector`) com papel.
 - Usuário N:N Tarefa (`UserTask`).
+- Ministro N:N Música via `MinisterSongKey`.
 - Usuário 1:N Indisponibilidade.
 
 ## 7) E-mails já prontos
@@ -197,7 +265,4 @@ Relações-chave:
 
 ## 9) O que ainda não aparece implementado via endpoint HTTP
 
-- Listagem geral de igrejas.
-- Remoção de membro da igreja.
-- Remoção de membro do setor.
-- Endpoint de exclusão de usuário.
+- Sem pendências mapeadas no escopo atual (fora de features futuras).

@@ -21,12 +21,13 @@ import {
 } from '@nestjs/swagger';
 import { plainToClass } from 'class-transformer';
 
-import { CreateChurch, DeleteChurch, UpdateChurch } from '../../../../core/use-cases/church';
+import { CreateChurch, DeleteChurch, ListChurches, UpdateChurch } from '../../../../core/use-cases/church';
 import { CreateUserChurch, GetUserChurch } from '../../../../core/use-cases/user-church';
 import {
   CreateChurchResponseData,
   CreateChurchBody,
   GetChurchUserResponse,
+  ListChurchesResponse,
   UpdateChurchBody,
   UpdateChurchResponseData
 } from '../../dtos';
@@ -44,7 +45,8 @@ export class ChurchController {
     private readonly createUserChurch: CreateUserChurch,
     private readonly getUserChurch: GetUserChurch,
     private readonly deleteChurch: DeleteChurch,
-    private readonly updateChurch: UpdateChurch
+    private readonly updateChurch: UpdateChurch,
+    private readonly listChurches: ListChurches
   ) { }
 
   @Post('')
@@ -109,6 +111,33 @@ export class ChurchController {
       throw new BadRequestException('Error creating church');
 
     }
+  }
+
+  @Get('')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Listar igrejas cadastradas' })
+  @ApiOkResponse({
+    description: 'Lista de igrejas retornada com sucesso',
+    schema: {
+      example: {
+        churches: [
+          {
+            id: 'e8c7a0b9-7a0c-4f1d-8a3e-5f3c1e6b3a1f',
+            name: 'Igreja Vida em Cristo',
+            description: 'Comunidade localizada no centro da cidade',
+            created_at: '2024-05-11T12:00:00.000Z',
+            updated_at: '2024-05-11T12:00:00.000Z',
+          },
+        ],
+      },
+    },
+  })
+  async list(): Promise<ListChurchesResponse> {
+    const { data } = await this.listChurches.execute();
+
+    return plainToClass(ListChurchesResponse, { churches: data }, {
+      excludeExtraneousValues: true
+    });
   }
 
   @Get(':church_id')

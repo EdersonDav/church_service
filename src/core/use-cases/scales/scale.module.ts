@@ -6,6 +6,7 @@ import { DeleteScale } from './delete';
 import { GetScale } from './get';
 import { ListScalesBySector } from './list-by-sector';
 import { SetScaleParticipants } from './set-participants';
+import { ScaleSongModule } from '../scale-songs';
 
 const useCases = [
     CreateScale,
@@ -17,7 +18,7 @@ const useCases = [
 ];
 
 @Module({
-    imports: [DataBaseModule],
+    imports: [DataBaseModule, ScaleSongModule],
     providers: [...useCases],
     exports: [...useCases],
 })

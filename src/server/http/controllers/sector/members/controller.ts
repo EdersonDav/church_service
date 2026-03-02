@@ -7,6 +7,7 @@ import {
   BadRequestException,
   Get,
   Patch,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -18,7 +19,12 @@ import {
 } from '@nestjs/swagger';
 import { plainToClass } from 'class-transformer';
 
-import { CreateUserSector, GetUserSectorMembers } from '../../../../../core/use-cases/user-sector';
+import {
+  CreateUserSector,
+  DeleteUserSector,
+  GetUserSector,
+  GetUserSectorMembers
+} from '../../../../../core/use-cases/user-sector';
 import { GetNotVerifiedUser, GetUser } from '../../../../../core/use-cases/user';
 import {
   BodyMemberDTO,
@@ -39,7 +45,9 @@ export class SectorMembersController {
     private readonly createUserSector: CreateUserSector,
     private readonly getUser: GetUser,
     private readonly getNotVerifiedUser: GetNotVerifiedUser,
+    private readonly getUserSector: GetUserSector,
     private readonly getUserSectorMembers: GetUserSectorMembers,
+    private readonly deleteUserSector: DeleteUserSector,
     private readonly getUserChurch: GetUserChurch,
     private readonly getSector: GetSector,
   ) { }
@@ -202,5 +210,37 @@ export class SectorMembersController {
     });
 
     return { message: 'Member role updated successfully' };
+  }
+
+  @Delete(':member_id')
+  @UseGuards(AuthGuard, SectorGuard)
+  @ApiOperation({ summary: 'Remover um membro do setor' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
+  @ApiParam({ name: 'member_id', description: 'Identificador do membro', type: String })
+  @ApiOkResponse({
+    description: 'Membro removido do setor com sucesso',
+    schema: {
+      example: {
+        message: 'Member removed from sector successfully',
+      },
+    },
+  })
+  async removeMember(
+    @Param('church_id') church_id: UUID,
+    @Param('sector_id') sector_id: UUID,
+    @Param('member_id') member_id: UUID,
+  ): Promise<{ message: string }> {
+    await this.ensureSectorBelongsToChurch(church_id, sector_id);
+
+    const { data: relation } = await this.getUserSector.execute({ user_id: member_id, sector_id });
+
+    if (!relation) {
+      throw new BadRequestException('Member is not part of this sector');
+    }
+
+    await this.deleteUserSector.execute({ user_id: member_id, sector_id });
+
+    return { message: 'Member removed from sector successfully' };
   }
 }

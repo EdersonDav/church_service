@@ -39,6 +39,13 @@ export class UserChurchService implements UserChurchRepository {
     await this.entity.delete(id);
   }
 
+  async deleteByUserAndChurch(user_id: UUID, church_id: UUID): Promise<void> {
+    await this.entity.delete({
+      user_id,
+      church_id,
+    });
+  }
+
   async getChurchMembers(church_id: UUID): Promise<{ church: Partial<Church>; members: Partial<User>[] }> {
     const members = await this.entity.find({
       where: {

@@ -45,6 +45,12 @@
 
 ---
 
+### Eventos extras
+
+- [x] CRUD extra events (aniversário, conferência, culto de casais), relacionados com igreja
+
+---
+
 ### Indisponibilidade
 
 - [x] CRUD unavailability
@@ -56,17 +62,15 @@
 
 ## Pendências atuais (fora de future feature)
 
-- [ ] listagem geral de igrejas
-- [ ] remover membro da igreja
-- [ ] remover membro do setor
-- [ ] endpoint de exclusão de usuário
+- [x] listagem geral de igrejas
+- [x] remover membro da igreja
+- [x] remover membro do setor
+- [x] endpoint de exclusão de usuário
 
 ---
 
 ## FUTURE FEATURE
 
-- [ ] crud extra events, like aniversaries, conference, couple service
-  - related with church
-
-- [ ] crud church assets, like music, schedules
+- [x] biblioteca de tons personalizados por ministro (songs + minister song keys + scale songs)
+- [ ] outros church assets, like files, repertórios avançados, anexos
   - https://chatgpt.com/canvas/shared/6831b5aa751c8191aa5e5d38931009e7

@@ -6,8 +6,10 @@ import {
     UnavailabilityRepository,
     UserSectorRepository
 } from '../../../../database/repositories/interfaces';
+import { RecalculateScaleSongKeys } from '../../scale-songs';
 import { Input } from './input';
 import { Output } from './output';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class SetScaleParticipants {
@@ -17,6 +19,7 @@ export class SetScaleParticipants {
         private readonly taskRepository: TaskRepository,
         private readonly userSectorRepository: UserSectorRepository,
         private readonly unavailabilityRepository: UnavailabilityRepository,
+        private readonly recalculateScaleSongKeys: RecalculateScaleSongKeys,
     ) { }
 
     async execute({ scale_id, sector_id, participants }: Input): Promise<Output> {
@@ -95,6 +98,8 @@ export class SetScaleParticipants {
                 .map((item) => updated.find((participant) => participant.user_id === item.user_id && participant.task_id === item.task_id))
                 .filter((participant): participant is NonNullable<typeof participant> => !!participant)
             : updated;
+
+        await this.recalculateScaleSongKeys.execute({ scale_id: scale_id as UUID });
 
         return { data: ordered };
     }

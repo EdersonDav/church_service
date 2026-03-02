@@ -8,3 +8,7 @@ export * from './common';
 export * from './sector';
 export * from './scales';
 export * from './unavailability';
+export * from './extra-events';
+export * from './songs';
+export * from './ministers';
+export * from './scale-songs';

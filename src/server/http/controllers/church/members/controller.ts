@@ -6,6 +6,7 @@ import {
   Param,
   BadRequestException,
   Get,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -17,7 +18,12 @@ import {
 } from '@nestjs/swagger';
 import { plainToClass } from 'class-transformer';
 
-import { CreateUserChurch, GetUserChurchMembers, GetUserChurch } from '../../../../../core/use-cases/user-church';
+import {
+  CreateUserChurch,
+  DeleteUserChurch,
+  GetUserChurchMembers,
+  GetUserChurch
+} from '../../../../../core/use-cases/user-church';
 import { GetNotVerifiedUser, GetUser } from '../../../../../core/use-cases/user';
 import {
   BodyMemberDTO,
@@ -26,6 +32,7 @@ import {
 import { AuthGuard, ChurchRoleGuard } from '../../../../../core/guards';
 import { UUID } from 'crypto';
 import { ChurchRoleEnum } from '../../../../../enums';
+import { DeleteUserSectorsByChurch } from '../../../../../core/use-cases/user-sector';
 
 @ApiTags('Membros da Igreja')
 @ApiBearerAuth()
@@ -36,7 +43,9 @@ export class MembersController {
     private readonly getUser: GetUser,
     private readonly getNotVerifiedUser: GetNotVerifiedUser,
     private readonly getUserChurchMembers: GetUserChurchMembers,
-    private readonly getUserChurch: GetUserChurch
+    private readonly getUserChurch: GetUserChurch,
+    private readonly deleteUserChurch: DeleteUserChurch,
+    private readonly deleteUserSectorsByChurch: DeleteUserSectorsByChurch,
   ) { }
 
   @Post('')
@@ -160,5 +169,36 @@ export class MembersController {
     });
 
     return { message: 'Member promoted to admin successfully' };
+  }
+
+  @Delete(':member_id')
+  @UseGuards(AuthGuard, ChurchRoleGuard)
+  @ApiOperation({ summary: 'Remover um membro da igreja' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiParam({ name: 'member_id', description: 'Identificador do membro', type: String })
+  @ApiOkResponse({
+    description: 'Membro removido com sucesso',
+    schema: {
+      example: {
+        message: 'Member removed successfully',
+      },
+    },
+  })
+  async removeMember(
+    @Param('church_id') church_id: UUID,
+    @Param('member_id') member_id: UUID,
+  ): Promise<{ message: string }> {
+    const { data: isMember } = await this.getUserChurch.execute({ church_id, user_id: member_id });
+
+    if (!isMember) {
+      throw new BadRequestException('Member is not part of this church');
+    }
+
+    await Promise.all([
+      this.deleteUserChurch.execute({ church_id, user_id: member_id }),
+      this.deleteUserSectorsByChurch.execute({ church_id, user_id: member_id }),
+    ]);
+
+    return { message: 'Member removed successfully' };
   }
 }

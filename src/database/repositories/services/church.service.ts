@@ -36,4 +36,12 @@ export class ChurchService implements ChurchRepository {
     return churchFound
   }
 
+  async list(): Promise<Church[]> {
+    return this.entity.find({
+      order: {
+        name: 'ASC',
+      },
+    });
+  }
+
 }
