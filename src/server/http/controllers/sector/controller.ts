@@ -8,7 +8,8 @@ import {
   Get,
   NotFoundException,
   Delete,
-  Patch
+  Patch,
+  ForbiddenException
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -25,16 +26,23 @@ import {
   CreateSectorResponseData,
   CreateSectorBody,
   GetSectorUserResponse,
+  ListSectorsResponse,
   UpdateSectorBody,
   UpdateSectorResponseData
 } from '../../dtos';
-import { AuthGuard, SectorGuard } from '../../../../core/guards';
+import { AuthGuard, ChurchRoleGuard, SectorGuard } from '../../../../core/guards';
 import { UUID } from 'crypto';
 import { ReqUserDecorator } from '../../../../common';
 import { SectorRoleEnum } from '../../../../enums';
-import { CreateSector, UpdateSector, DeleteSector } from '../../../../core/use-cases/sectors';
+import {
+  CreateSector,
+  DeleteSector,
+  ListSectorsByChurch,
+  UpdateSector
+} from '../../../../core/use-cases/sectors';
 import { CreateUserSector, GetUserSector } from '../../../../core/use-cases/user-sector';
 import { GetChurch } from '../../../../core/use-cases/church/get';
+import { GetUserChurch } from '../../../../core/use-cases/user-church';
 
 @ApiTags('Setores')
 @ApiBearerAuth()
@@ -46,11 +54,13 @@ export class SectorController {
     private readonly getUserSector: GetUserSector,
     private readonly deleteSector: DeleteSector,
     private readonly updateSector: UpdateSector,
-    private readonly getChurch: GetChurch
+    private readonly getChurch: GetChurch,
+    private readonly listSectorsByChurch: ListSectorsByChurch,
+    private readonly getUserChurch: GetUserChurch,
   ) { }
 
   @Post('')
-  @UseGuards(AuthGuard, SectorGuard)
+  @UseGuards(AuthGuard, ChurchRoleGuard)
   @ApiOperation({ summary: 'Criar um novo setor na igreja' })
   @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
   @ApiBody({
@@ -121,6 +131,48 @@ export class SectorController {
       throw new BadRequestException('Error creating sector');
 
     }
+  }
+
+  @Get('')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Listar setores de uma igreja' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiOkResponse({
+    description: 'Setores listados com sucesso',
+    schema: {
+      example: {
+        sectors: [
+          {
+            id: 'a7b5d4c2-6f8e-4b3a-9d2c-1e0f5a6b7c8d',
+            name: 'Ministério de Louvor',
+            created_at: '2024-05-11T12:00:00.000Z',
+            updated_at: '2024-05-11T12:00:00.000Z',
+          }
+        ]
+      },
+    },
+  })
+  async list(
+    @Param('church_id') church_id: UUID,
+    @ReqUserDecorator() user: { id: UUID }
+  ): Promise<ListSectorsResponse> {
+    const { data: church } = await this.getChurch.execute({ search_by: 'id', search_data: church_id });
+
+    if (!church) {
+      throw new NotFoundException('Church not found');
+    }
+
+    const { data: userChurch } = await this.getUserChurch.execute({ church_id, user_id: user.id });
+
+    if (!userChurch) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const { data } = await this.listSectorsByChurch.execute({ church_id });
+
+    return plainToClass(ListSectorsResponse, { sectors: data }, {
+      excludeExtraneousValues: true
+    });
   }
 
   @Get(':sector_id')

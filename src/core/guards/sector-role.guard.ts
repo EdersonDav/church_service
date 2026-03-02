@@ -18,7 +18,10 @@ export class SectorGuard implements CanActivate {
             user_id: user.id, church_id: request.params.church_id
         });
 
-        if (userChurch?.data?.role === ChurchRoleEnum.ADMIN) {
+        if (
+            userChurch?.data?.role === ChurchRoleEnum.ADMIN ||
+            userChurch?.data?.role === ChurchRoleEnum.ROOT
+        ) {
             return true;
         }
 
@@ -29,10 +32,10 @@ export class SectorGuard implements CanActivate {
             sector_id: sector_id
         });
 
-        if (sectorUser?.data?.role === SectorRoleEnum.LEADER) {
+        if (sectorUser?.data?.role === SectorRoleEnum.ADMIN) {
             return true;
         }
 
-        throw new UnauthorizedException('Você não tem acesso a este setor');
+        throw new UnauthorizedException('Você não tem permissão de administração neste setor');
     }
 }

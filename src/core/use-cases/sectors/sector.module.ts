@@ -3,9 +3,10 @@ import { CreateSector } from './create';
 import { GetSector } from './get';
 import { UpdateSector } from './update';
 import { DeleteSector } from './delete';
+import { ListSectorsByChurch } from './list-by-church';
 import { DataBaseModule } from '../../../database';
 
-const useCases = [CreateSector, GetSector, UpdateSector, DeleteSector];
+const useCases = [CreateSector, GetSector, UpdateSector, DeleteSector, ListSectorsByChurch];
 
 @Module({
   imports: [

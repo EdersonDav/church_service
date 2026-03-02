@@ -1,5 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UnavailabilityRepository } from '../../../../database/repositories/interfaces';
+import {
+    ParticipantRepository,
+    UnavailabilityRepository
+} from '../../../../database/repositories/interfaces';
 import { Input } from './input';
 import { Output } from './output';
 
@@ -7,9 +10,19 @@ import { Output } from './output';
 export class CreateUnavailability {
     constructor(
         private readonly unavailabilityRepository: UnavailabilityRepository,
+        private readonly participantRepository: ParticipantRepository,
     ) { }
 
     async execute({ user_id, date }: Input): Promise<Output> {
+        const scheduled = await this.participantRepository.findByUserAndDate(user_id, date);
+
+        if (scheduled.length) {
+            const sectorName = scheduled[0]?.scale?.sector?.name;
+            const suffix = sectorName ? ` in sector ${sectorName}` : '';
+
+            throw new BadRequestException(`User is already scheduled${suffix} on this date`);
+        }
+
         const existing = await this.unavailabilityRepository.findByUserAndDate(user_id, date);
 
         if (existing) {

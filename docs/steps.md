@@ -1,56 +1,72 @@
-Next step
+## Next step (status real do código)
 
-- get user - ok
-- update user - ok
-- if a user try to login but this user is not verified, send code again - ok
-  -- if user existis and try to register again if the user does not verified, update user register by email and resend code - ok
-- verify user code - ok
-  -- if users already register and they account is verified and try to register again, send a email with information about account already exists - ok
+### Usuário e autenticação
 
----
-
-- verify login - ok
-- reset password, when the user click in forgot my pass we send a code for there email - ok
-- add user birthday - ok
-  -- update user data - ok
-- add user id in requests to verify permissions - ok
+- [x] get user
+- [x] update user
+- [x] login com reenvio de código para usuário não verificado
+- [x] recadastro de usuário não verificado (update + novo código)
+- [x] verify user code
+- [x] e-mail para conta já existente
+- [x] verify login
+- [x] forgot password + reset password
+- [x] birthday no usuário
+- [x] validação de user id nas rotas de perfil
 
 ---
 
-- crud church - ok
-- add members in the church, set default voluntary - ok
-- get members in the church - ok
-- set others members as a admin - ok
+### Igreja
+
+- [x] CRUD church
+- [x] adicionar membros na igreja (default voluntary)
+- [x] listar membros da igreja
+- [x] promover membro da igreja para admin
 
 ---
 
-- crud sectors
-- add admins (only sector) and voluntaries
-  -- only church admin can create sectors and set sectors admin
+### Setor
+
+- [x] CRUD sectors
+- [x] listar setores por igreja
+- [x] adicionar membros no setor (member)
+- [x] promover/rebaixar papel no setor (ADMIN/MEMBER)
+- [x] somente church admin cria setor
+- [x] somente church admin define admin de setor
 
 ---
 
-- crud tasks
-- related users and tasks
-- set in user perfil tasks like minister, guitar etc
-- crud scales
-  -- for scales and tasks, only admin church and admin sector can create and allocate users
+### Tarefas e escalas
+
+- [x] CRUD tasks
+- [x] related users and tasks
+- [x] set tasks no perfil do usuário (minister, guitar etc)
+- [x] CRUD scales
+- [x] somente admin church e admin sector criam/atualizam tarefas e escalas
 
 ---
 
-- crud unavailability
-- handle unavailability
-  -- if a user set unavailability, this user cannot be scales in any sectors scales
-  -- if user was scale in determinate sector, this user will be unavailability for others sectors with message "this user already scaled in sector ..."
+### Indisponibilidade
+
+- [x] CRUD unavailability
+- [x] usuário indisponível não pode ser escalado naquele dia
+- [x] se já estiver escalado, não pode criar indisponibilidade para o mesmo dia
+- [x] conflito entre setores no mesmo dia com mensagem de setor
+
+---
+
+## Pendências atuais (fora de future feature)
+
+- [ ] listagem geral de igrejas
+- [ ] remover membro da igreja
+- [ ] remover membro do setor
+- [ ] endpoint de exclusão de usuário
 
 ---
 
 ## FUTURE FEATURE
 
-- crud extra events, like aniversaries, conference, couple service
-  -- this extra events to need to related with the church
+- [ ] crud extra events, like aniversaries, conference, couple service
+  - related with church
 
----
-
-- crud church assets, like music, schedules ....
-  -- https://chatgpt.com/canvas/shared/6831b5aa751c8191aa5e5d38931009e7
+- [ ] crud church assets, like music, schedules
+  - https://chatgpt.com/canvas/shared/6831b5aa751c8191aa5e5d38931009e7

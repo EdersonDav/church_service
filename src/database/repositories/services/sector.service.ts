@@ -47,4 +47,11 @@ export class SectorService implements SectorRepository {
     });
     return sectorFound
   }
+
+  async listByChurch(church_id: string): Promise<Sector[]> {
+    return this.entity.find({
+      where: { church_id },
+      order: { name: 'ASC' },
+    });
+  }
 }

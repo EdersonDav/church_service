@@ -28,10 +28,20 @@ export class UnavailabilityService implements UnavailabilityRepository {
   }
 
   async findByUserAndDate(user_id: string, date: Date): Promise<Unavailability | null> {
+    const dateOnly = this.toDateOnly(date);
+
     return this.entity
       .createQueryBuilder('unavailability')
       .where('unavailability.user_id = :user_id', { user_id })
-      .andWhere('DATE(unavailability.date) = DATE(:date)', { date })
+      .andWhere('DATE(unavailability.date) = :dateOnly', { dateOnly })
       .getOne();
+  }
+
+  private toDateOnly(date: Date): string {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+
+    return date.toISOString().slice(0, 10);
   }
 }

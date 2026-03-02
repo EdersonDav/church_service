@@ -32,6 +32,8 @@ export class ParticipantService implements ParticipantRepository {
   }
 
   async findByUserAndDate(user_id: string, date: Date): Promise<Participant[]> {
+    const dateOnly = this.toDateOnly(date);
+
     return this.entity
       .createQueryBuilder('participant')
       .innerJoinAndSelect('participant.scale', 'scale')
@@ -39,7 +41,15 @@ export class ParticipantService implements ParticipantRepository {
       .leftJoinAndSelect('participant.task', 'task')
       .leftJoinAndSelect('participant.user', 'user')
       .where('participant.user_id = :user_id', { user_id })
-      .andWhere('DATE(scale.date) = DATE(:date)', { date })
+      .andWhere('DATE(scale.date) = :dateOnly', { dateOnly })
       .getMany();
+  }
+
+  private toDateOnly(date: Date): string {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+
+    return date.toISOString().slice(0, 10);
   }
 }
