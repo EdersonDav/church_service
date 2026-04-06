@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs'
 import { env } from '../../config';
 
 export const hashString = (text: string): string => {

@@ -14,7 +14,7 @@ const useCases = [CreateToken, ValidateUser, AuthGuard];
     JwtModule.register({
       global: true,
       secret: env.jwtConstants.secret,
-      signOptions: { expiresIn: env.jwtConstants.expiresIn },
+      signOptions: { expiresIn: env.jwtConstants.expiresIn as any },
     }),
   ],
   providers: [...useCases],
