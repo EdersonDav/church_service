@@ -1,6 +1,0 @@
-export * from './user.repository'
-export * from './task.repository'
-export * from './church.repository'
-export * from './verification-code.repository'
-export * from './email.repository'
-export * from './password-reset-tokens.repository'
