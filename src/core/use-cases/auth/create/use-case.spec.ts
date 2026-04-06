@@ -20,8 +20,7 @@ describe('# Create Token', () => {
     });
 
     const input: Input = {
-        email: faker.internet.email(),
-        name: faker.person.firstName()
+        id: randomUUID()
     };
     const access_token = randomUUID();
 

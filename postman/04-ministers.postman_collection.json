@@ -1,0 +1,39 @@
+{
+  "info": {
+    "name": "04 - Ministros e Canções",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Associar Ministro (Roles)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role_name\": \"Baterista\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/churches/{{church_id}}/sectors/{{sector_id}}/ministers/{{church_user_id}}", "host": ["{{baseUrl}}"], "path": ["churches", "{{church_id}}", "sectors", "{{sector_id}}", "ministers", "{{church_user_id}}"] }
+      }
+    },
+    {
+      "name": "2. Adicionar Música",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Música Teste\",\n  \"artist\": \"Artista Teste\",\n  \"bpm\": 120,\n  \"duration\": 300\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/churches/{{church_id}}/songs", "host": ["{{baseUrl}}"], "path": ["churches", "{{church_id}}", "songs"] }
+      }
+    }
+  ],
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:5555" }]
+}

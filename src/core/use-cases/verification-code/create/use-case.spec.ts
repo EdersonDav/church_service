@@ -9,7 +9,7 @@ import { MockVerificationCodeModule } from '../mock.module';
 import { FakeVerificationCodeRepository, FakeEmailRepository } from '../../../../database/repositories/fakes';
 import { VerificationCodeRepository, EmailRepository } from '../../../../database/repositories/interfaces';
 import { User } from '../../../../database/entities';
-import { encodePass, genCode } from '../../../helpers';
+import { hashString, genCode } from '../../../helpers';
 
 describe('# Create Verification Code', () => {
     let use_case: CreateVerificationCode;
@@ -31,10 +31,10 @@ describe('# Create Verification Code', () => {
         id: randomUUID(),
         is_verified: false,
         name: faker.person.firstName(),
-        password: encodePass(faker.internet.url()),
+        password: hashString(faker.internet.url()),
     }
 
-    const input: Input = { 
+    const input: Input = {
         user
     };
     const code = genCode();

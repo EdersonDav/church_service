@@ -7,48 +7,51 @@ import { faker } from '@faker-js/faker';
 
 import { MockChurchModule } from '../mock.module';
 import { ChurchRepository } from '../../../../database/repositories/interfaces';
+import { randomUUID } from 'crypto';
 
 describe('# Create Church', () => {
-    let use_case: CreateChurch;
-    let repository: FakeChurchRepository;
+  let use_case: CreateChurch;
+  let repository: FakeChurchRepository;
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [MockChurchModule],
-        }).compile();
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [MockChurchModule],
+    }).compile();
 
-        use_case = module.get<CreateChurch>(CreateChurch);
-        repository = module.get<FakeChurchRepository>(ChurchRepository);
-    });
+    use_case = module.get<CreateChurch>(CreateChurch);
+    repository = module.get<FakeChurchRepository>(ChurchRepository);
+  });
 
-    const church = {
-        name: faker.company.buzzVerb()
-    };
+  const church = {
+    name: faker.company.buzzVerb(),
+    user_id: randomUUID(),
+  };
 
-    const input: Input = { ...church };
+  const input: Input = { ...church };
+  const outPut = { data: { name: church.name, id: randomUUID() } };
 
-    it.each([
-        {
-            run: true,
-            should: 'Should be able to create a church',
-            input: () => input,
-            setup: () => {
-                repository.save.mockResolvedValueOnce(church);
-            },
-            expected: (output: any) => {
-                expect(output).toEqual({ data: church });
-                expect(repository.save).toBeTruthy();
-                expect(repository.save).toHaveBeenCalledWith(input);
-            },
-        },
-    ])('$should', async ({ run, setup, input, expected }) => {
-        if (!run) return;
+  it.each([
+    {
+      run: true,
+      should: 'Should be able to create a church',
+      input: () => input,
+      setup: () => {
+        repository.save.mockResolvedValueOnce(outPut);
+      },
+      expected: (output: any) => {
+        expect(output).toEqual(outPut);
+        expect(repository.save).toBeTruthy();
+        expect(repository.save).toHaveBeenCalledWith(input);
+      },
+    },
+  ])('$should', async ({ run, setup, input, expected }) => {
+    if (!run) return;
 
-        if (setup) setup();
+    if (setup) setup();
 
-        use_case
-            .execute(input() as Input)
-            .then(expected)
-            .catch(expected);
-    });
+    use_case
+      .execute(input() as Input)
+      .then(expected)
+      .catch(expected);
+  });
 });
