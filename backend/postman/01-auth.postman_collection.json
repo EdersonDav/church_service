@@ -1,0 +1,45 @@
+{
+  "info": {
+    "name": "01 - Usuários e Autenticação",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Cadastrar Usuário",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Fulano\",\n  \"email\": \"fulano@exemplo.com\",\n  \"password\": \"Senha@123\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+      }
+    },
+    {
+      "name": "2. Verificar Código",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"fulano@exemplo.com\",\n  \"code\": \"123456\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/verify-code", "host": ["{{baseUrl}}"], "path": ["verify-code"] }
+      }
+    },
+    {
+      "name": "3. Fazer Login",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"fulano@exemplo.com\",\n  \"password\": \"Senha@123\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+      }
+    }
+  ],
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:5555" }]
+}

@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "ignoreDeprecations": "6.0",
-    "rootDir": "api",
+    "rootDir": "src",
     "baseUrl": "./",
     "types": ["node", "jest"],
     "typeRoots": ["./node_modules/@types"],
@@ -27,11 +27,11 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
-      "@database/*": ["./api/database/*"],
-      "@core/*": ["./api/core/*"],
-      "@config/*": ["./api/config/*"],
-      "@server/*": ["./api/server/*"]
+      "@database/*": ["./src/database/*"],
+      "@core/*": ["./src/core/*"],
+      "@config/*": ["./src/config/*"],
+      "@server/*": ["./src/server/*"]
     }
   },
-  "include": ["./api", "**/public", "**/*.png", "test"]
+  "include": ["./src", "**/public", "**/*.png", "test"]
 }
