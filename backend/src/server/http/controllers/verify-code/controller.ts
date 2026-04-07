@@ -1,20 +1,28 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { VerifyCodeBody, VerifyCodeResponse } from '../../dtos';
+import {
+  ResendVerifyCodeBody,
+  ResendVerifyCodeResponse,
+  VerifyCodeBody,
+  VerifyCodeResponse,
+} from '../../dtos';
 
-import { VerifyCode } from '../../../../core/use-cases/verification-code/verify';
+import { CreateVerificationCode, VerifyCode } from '../../../../core/use-cases/verification-code';
 import { DeleteCode } from '../../../../core/use-cases/verification-code/delete-code';
 import { GetUser } from '../../../../core/use-cases/user/get';
 import { MarkAsVerifiedUser } from '../../../../core/use-cases/user/mark-as-verify';
+import { SendVerifyCode } from '../../../../core/use-cases/emails';
 
 @ApiTags('Verificação de Código')
 @Controller('verify-code/user')
 export class VerificationCodeController {
   constructor(
+    private readonly createVerificationCode: CreateVerificationCode,
     private readonly verifyCode: VerifyCode,
     private readonly deleteCode: DeleteCode,
     private readonly getUser: GetUser,
     private readonly markAsVerifiedUser: MarkAsVerifiedUser,
+    private readonly sendVerifyCode: SendVerifyCode,
   ) { }
 
   @Post('')
@@ -67,5 +75,55 @@ export class VerificationCodeController {
     return {
       data: { message: 'User verified successfully' }
     }
+  }
+
+  @Post('resend')
+  @ApiOperation({ summary: 'Reenviar cÃ³digo de verificaÃ§Ã£o por e-mail' })
+  @ApiBody({
+    type: ResendVerifyCodeBody,
+    description: 'E-mail do usuÃ¡rio que precisa receber um novo cÃ³digo',
+    examples: {
+      default: {
+        summary: 'Reenvio de cÃ³digo',
+        value: {
+          email: 'maria.souza@example.com',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Resultado do reenvio do cÃ³digo',
+    schema: {
+      example: {
+        data: {
+          message: 'Verification code resent successfully',
+        },
+      },
+    },
+  })
+  async resend(
+    @Body() { email }: ResendVerifyCodeBody,
+  ): Promise<ResendVerifyCodeResponse> {
+    const user = await this.getUser.execute({ search_by: 'email', search_data: email });
+
+    if (!user.data?.id || !user.data?.email || user.data.is_verified) {
+      return {
+        data: { message: 'Invalid email' },
+      };
+    }
+
+    await this.deleteCode.execute({ user_id: user.data.id });
+    const { data } = await this.createVerificationCode.execute({
+      user: user.data,
+    });
+
+    await this.sendVerifyCode.execute({
+      email: user.data.email,
+      code: data.code,
+    });
+
+    return {
+      data: { message: 'Verification code resent successfully' },
+    };
   }
 }

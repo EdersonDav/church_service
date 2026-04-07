@@ -3,7 +3,7 @@ import { IsDate, IsEmail, IsOptional, IsString, IsStrongPassword, Length } from 
 
 export class BodyUserDTO {
     @IsString({ message: 'The name is needed' })
-    @Length(3, 25, { message: 'The name must be between 3 and 25 characters' })
+    @Length(3, 100, { message: 'The name must be between 3 and 100 characters' })
     name!: string
 
     @IsString({ message: 'The password is needed' })

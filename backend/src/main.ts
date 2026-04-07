@@ -5,6 +5,7 @@ import { env, validator } from './config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('Gerenciamento de escalas')
     .setDescription('API voltada para gerenciamento de escalas nos cultos')
