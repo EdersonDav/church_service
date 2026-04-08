@@ -1,15 +1,25 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { Redirect, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ApiError } from '@/lib/api';
 import { resendVerifyCode, verifyCode } from '@/lib/auth';
+import { useScrollToFocusedInput } from '@/hooks/use-scroll-to-focused-input';
 import { useSessionStore } from '@/stores/session-store';
 
 export default function VerifyCodeScreen() {
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email?: string }>();
   const token = useSessionStore((state) => state.token);
+  const { scrollViewRef, scrollToFocusedInput } = useScrollToFocusedInput();
   const [code, setCode] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -91,11 +101,18 @@ export default function VerifyCodeScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background pt-16">
+    <KeyboardAvoidingView
+      className="flex-1 bg-background pt-16"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        ref={scrollViewRef}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingBottom: 24 }}
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         showsVerticalScrollIndicator={false}>
         <View className="w-full max-w-[480px] px-6 md:px-12 lg:ml-20 pb-10">
           <TouchableOpacity
@@ -127,6 +144,7 @@ export default function VerifyCodeScreen() {
                 autoCorrect={false}
                 maxLength={6}
                 cursorColor="#6366F1"
+                onFocus={scrollToFocusedInput}
                 value={code}
                 onChangeText={(value) => setCode(value.replace(/\D/g, ''))}
               />
@@ -170,6 +188,6 @@ export default function VerifyCodeScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

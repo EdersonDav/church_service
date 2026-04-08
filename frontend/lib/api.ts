@@ -1,3 +1,7 @@
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+import { useSessionStore } from '@/stores/session-store';
+
 export class ApiError extends Error {
   status: number;
   details?: unknown;
@@ -11,7 +15,20 @@ export class ApiError extends Error {
 }
 
 export function getApiBaseUrl() {
-  return process.env.EXPO_PUBLIC_API_URL?.trim() || '';
+  const configuredBaseUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+  const baseUrl = configuredBaseUrl || 'http://localhost:5555';
+
+  if (!__DEV__ || Platform.OS === 'web') {
+    return baseUrl;
+  }
+
+  const devHost = Constants.expoConfig?.hostUri?.split(':')[0]?.trim();
+
+  if (!devHost) {
+    return baseUrl;
+  }
+
+  return baseUrl.replace(/\/\/(localhost|127\.0\.0\.1)(?=[:/]|$)/i, `//${devHost}`);
 }
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
@@ -20,8 +37,9 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}) {
   const baseUrl = getApiBaseUrl();
-  
+
   if (!baseUrl) {
+    console.error('EXPO_PUBLIC_API_URL is not defined in environment variables.');
     throw new ApiError(
       'EXPO_PUBLIC_API_URL nao foi definida. Configure o arquivo .env do frontend.',
       0,
@@ -31,6 +49,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
   const headers = new Headers(options.headers);
   headers.set('Accept', 'application/json');
 
+  const token = useSessionStore.getState().token;
+
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
   let body = options.body;
   if (body && typeof body === 'object' && !(body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
@@ -39,12 +63,15 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
 
   let response: Response;
   try {
-    response = await fetch(`${baseUrl}${path}`, {
+    const requestUrl = new URL(path.replace(/^\//, ''), `${baseUrl.replace(/\/+$/, '')}/`);
+
+    response = await fetch(requestUrl.toString(), {
       ...options,
       headers,
       body,
     });
-  } catch {
+  } catch (error) {
+    console.error('Error fetching API:', error);
     throw new ApiError(
       'Nao foi possivel conectar com a API. Verifique o EXPO_PUBLIC_API_URL e se o backend esta rodando.',
       0,

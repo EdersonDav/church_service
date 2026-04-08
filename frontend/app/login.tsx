@@ -1,16 +1,28 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { Redirect, Stack, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { ApiError } from '@/lib/api';
 import { login } from '@/lib/auth';
+import { useScrollToFocusedInput } from '@/hooks/use-scroll-to-focused-input';
 import { useSessionStore } from '@/stores/session-store';
 
 export default function LoginScreen() {
   const router = useRouter();
   const token = useSessionStore((state) => state.token);
   const setSession = useSessionStore((state) => state.setSession);
+  const { scrollViewRef, scrollToFocusedInput } = useScrollToFocusedInput();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,10 +64,19 @@ export default function LoginScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <KeyboardAvoidingView
+      className="flex-1 bg-background"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingVertical: 24 }}
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        showsVerticalScrollIndicator={false}>
         <View className="w-full max-w-[480px] px-6 md:px-12 lg:ml-20">
           <View className="mb-10 mt-8">
             <View className="flex-row items-center mb-2">
@@ -82,6 +103,7 @@ export default function LoginScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 cursorColor="#6366F1"
+                onFocus={scrollToFocusedInput}
                 value={email}
                 onChangeText={setEmail}
               />
@@ -91,15 +113,28 @@ export default function LoginScreen() {
               <Text className="text-textMuted font-semibold ml-1 text-sm uppercase tracking-wider mb-2.5">
                 Senha
               </Text>
-              <TextInput
-                className="w-full text-textBase bg-surface border border-surfaceAlt rounded-2xl px-5 py-4 text-base focus:border-primary"
-                placeholder="Sua senha secreta"
-                placeholderTextColor="#475569"
-                secureTextEntry
-                cursorColor="#6366F1"
-                value={password}
-                onChangeText={setPassword}
-              />
+              <View className="relative">
+                <TextInput
+                  className="w-full text-textBase bg-surface border border-surfaceAlt rounded-2xl px-5 py-4 pr-14 text-base focus:border-primary"
+                  placeholder="Sua senha secreta"
+                  placeholderTextColor="#475569"
+                  secureTextEntry={!isPasswordVisible}
+                  cursorColor="#6366F1"
+                  onFocus={scrollToFocusedInput}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                  className="absolute right-4 top-0 bottom-0 justify-center"
+                  onPress={() => setIsPasswordVisible((current) => !current)}
+                  hitSlop={10}>
+                  <Ionicons
+                    name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
+                    size={22}
+                    color="#94A3B8"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <TouchableOpacity className="self-end mt-1">
@@ -132,6 +167,6 @@ export default function LoginScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
