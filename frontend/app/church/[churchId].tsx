@@ -14,7 +14,9 @@ import {
   ChurchMembership,
   ExtraEvent,
   Sector,
+  deleteChurch,
   getChurchMembership,
+  leaveChurch,
   listChurchEvents,
   listChurchSectors,
 } from '@/lib/churches';
@@ -48,14 +50,10 @@ export default function ChurchDetailsScreen() {
   const [isAccessDenied, setIsAccessDenied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  useEffect(() => {
-    if (!churchId) {
-      return;
-    }
-
-    void loadChurchData();
-  }, [churchId, loadChurchData]);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   const loadChurchData = useCallback(
     async (isPullToRefresh = false) => {
@@ -74,17 +72,20 @@ export default function ChurchDetailsScreen() {
         setIsAccessDenied(false);
 
         const churchMembership = await getChurchMembership(churchId);
-        const [churchSectors, churchEvents] = await Promise.all([
+        setMembership(churchMembership);
+
+        const [sectorsResult, eventsResult] = await Promise.allSettled([
           listChurchSectors(churchId),
           listChurchEvents(churchId),
         ]);
 
-        setMembership(churchMembership);
-        setSectors(churchSectors);
+        setSectors(sectorsResult.status === 'fulfilled' ? sectorsResult.value : []);
         setEvents(
-          [...churchEvents].sort(
-            (left, right) => new Date(left.date).getTime() - new Date(right.date).getTime(),
-          ),
+          eventsResult.status === 'fulfilled'
+            ? [...eventsResult.value].sort(
+              (left, right) => new Date(left.date).getTime() - new Date(right.date).getTime(),
+            )
+            : [],
         );
       } catch (error) {
         setMembership(null);
@@ -109,9 +110,63 @@ export default function ChurchDetailsScreen() {
     [churchId],
   );
 
+  useEffect(() => {
+    if (!churchId) {
+      return;
+    }
+
+    void loadChurchData();
+  }, [churchId, loadChurchData]);
+
   const churchName = membership?.church.name ?? name ?? 'Igreja';
   const churchDescription =
     membership?.church.description?.trim() || description?.trim() || 'Sem descricao cadastrada.';
+  const isAdmin = membership?.role === 'ADMIN';
+  const canLeaveChurch = Boolean(membership) && !isAdmin;
+
+  async function handleDeleteChurch() {
+    if (!churchId) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setErrorMessage('');
+
+      await deleteChurch(churchId);
+      router.replace('/(tabs)');
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage('Nao foi possivel deletar a igreja agora.');
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  async function handleLeaveChurch() {
+    if (!churchId) {
+      return;
+    }
+
+    try {
+      setIsLeaving(true);
+      setErrorMessage('');
+
+      await leaveChurch(churchId);
+      router.replace('/(tabs)');
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage('Nao foi possivel sair da igreja agora.');
+      }
+    } finally {
+      setIsLeaving(false);
+    }
+  }
 
   return (
     <View className="flex-1 bg-background">
@@ -123,18 +178,11 @@ export default function ChurchDetailsScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={() => loadChurchData(true)} />
         }
         showsVerticalScrollIndicator={false}>
-        <View className="mb-8 flex-row items-center justify-between">
+        <View className="mb-8 flex-row items-center">
           <TouchableOpacity
             className="h-11 w-11 items-center justify-center rounded-full bg-surface"
             onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={22} color="#F8FAFC" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-            onPress={() => loadChurchData(true)}
-            disabled={isRefreshing || isLoading}>
-            <Ionicons name="refresh-outline" size={22} color="#F8FAFC" />
           </TouchableOpacity>
         </View>
 
@@ -150,11 +198,6 @@ export default function ChurchDetailsScreen() {
             <View className="rounded-full bg-background px-4 py-2">
               <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                 {membership ? membership.role : 'Acesso pendente'}
-              </Text>
-            </View>
-            <View className="rounded-full bg-background px-4 py-2">
-              <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-textMuted">
-                {membership ? 'Membro vinculado' : 'Catalogo publico'}
               </Text>
             </View>
           </View>
@@ -264,6 +307,82 @@ export default function ChurchDetailsScreen() {
                 ))
               )}
             </View>
+
+            {isAdmin || canLeaveChurch ? (
+              <View className="mt-8 border-t border-surfaceAlt pt-6">
+                {isAdmin ? (
+                  isDeleteConfirmOpen ? (
+                    <View className="rounded-[24px] border border-danger/30 bg-danger/10 px-5 py-5">
+                      <Text className="text-base font-bold text-textBase">Deletar igreja?</Text>
+                      <Text className="mt-2 text-sm leading-6 text-textMuted">
+                        Esta acao remove a igreja e os dados associados permanentemente.
+                      </Text>
+                      <View className="mt-5 flex-row gap-3">
+                        <TouchableOpacity
+                          className="flex-1 items-center rounded-2xl bg-surface py-4"
+                          onPress={() => setIsDeleteConfirmOpen(false)}
+                          disabled={isDeleting}>
+                          <Text className="font-bold text-textBase">Cancelar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          className={`flex-1 items-center rounded-2xl py-4 ${
+                            isDeleting ? 'bg-surfaceAlt' : 'bg-danger'
+                          }`}
+                          onPress={handleDeleteChurch}
+                          disabled={isDeleting}>
+                          <Text className="font-bold text-white">
+                            {isDeleting ? 'Deletando...' : 'Confirmar'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      className="self-start flex-row items-center py-2"
+                      onPress={() => setIsDeleteConfirmOpen(true)}>
+                      <Ionicons name="trash-outline" size={17} color="#F87171" />
+                      <Text className="ml-2 text-sm font-semibold text-danger">Deletar igreja</Text>
+                    </TouchableOpacity>
+                  )
+                ) : null}
+
+                {canLeaveChurch && isLeaveConfirmOpen ? (
+                  <View className="rounded-[24px] border border-danger/30 bg-danger/10 px-5 py-5">
+                    <Text className="text-base font-bold text-textBase">Sair da igreja?</Text>
+                    <Text className="mt-2 text-sm leading-6 text-textMuted">
+                      Voce perde o acesso a esta igreja ate um administrador aprovar uma nova entrada.
+                    </Text>
+                    <View className="mt-5 flex-row gap-3">
+                      <TouchableOpacity
+                        className="flex-1 items-center rounded-2xl bg-surface py-4"
+                        onPress={() => setIsLeaveConfirmOpen(false)}
+                        disabled={isLeaving}>
+                        <Text className="font-bold text-textBase">Cancelar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className={`flex-1 items-center rounded-2xl py-4 ${
+                          isLeaving ? 'bg-surfaceAlt' : 'bg-danger'
+                        }`}
+                        onPress={handleLeaveChurch}
+                        disabled={isLeaving}>
+                        <Text className="font-bold text-white">
+                          {isLeaving ? 'Saindo...' : 'Confirmar'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : null}
+
+                {canLeaveChurch && !isLeaveConfirmOpen ? (
+                  <TouchableOpacity
+                    className="self-start flex-row items-center py-2"
+                    onPress={() => setIsLeaveConfirmOpen(true)}>
+                    <Ionicons name="exit-outline" size={17} color="#F87171" />
+                    <Text className="ml-2 text-sm font-semibold text-danger">Sair da igreja</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ) : null}
           </>
         ) : null}
       </ScrollView>

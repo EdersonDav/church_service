@@ -26,7 +26,13 @@ export const useSessionStore = create<SessionState>()(
     }),
     {
       name: 'session-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => {
+        if (typeof window === 'undefined') {
+          throw new Error('Session storage is only available in the browser.');
+        }
+
+        return AsyncStorage;
+      }),
       partialize: (state) => ({
         token: state.token,
         user: state.user,

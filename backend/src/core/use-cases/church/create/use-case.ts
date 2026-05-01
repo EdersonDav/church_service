@@ -13,7 +13,10 @@ export class CreateChurch {
     return {
       data: {
         name: data.name,
-        id: data.id
+        id: data.id,
+        description: data.description,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
       }
     }
   }

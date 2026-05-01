@@ -4,6 +4,7 @@ export type Church = {
   id: string;
   name: string;
   description?: string;
+  role?: 'ADMIN' | 'VOLUNTARY' | 'ROOT' | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -22,6 +23,21 @@ export type ChurchMembership = {
     is_verified: boolean;
     created_at?: string;
     updated_at?: string;
+  };
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ChurchJoinRequest = {
+  id: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  user_id: string;
+  church_id: string;
+  church?: Pick<Church, 'id' | 'name' | 'description'>;
+  user?: {
+    id: string;
+    email: string;
+    name: string;
   };
   created_at?: string;
   updated_at?: string;
@@ -57,6 +73,10 @@ type ListExtraEventsResponse = {
   events: ExtraEvent[];
 };
 
+type ListJoinRequestsResponse = {
+  requests: ChurchJoinRequest[];
+};
+
 export type CreateChurchPayload = {
   name: string;
   description?: string;
@@ -70,11 +90,63 @@ export async function listChurches() {
   return response.data.churches;
 }
 
+export async function searchChurches(name?: string) {
+  const query = name?.trim() ? `?name=${encodeURIComponent(name.trim())}` : '';
+  const response = await apiRequest<ListChurchesResponse>(`/churches/search${query}`, {
+    method: 'GET',
+  });
+
+  return response.data.churches;
+}
+
 export async function createChurch(payload: CreateChurchPayload) {
   const response = await apiRequest<Church>('/churches', {
     method: 'POST',
     body: payload,
   });
+
+  return response.data;
+}
+
+export async function deleteChurch(churchId: string) {
+  const response = await apiRequest<{ message: string }>(`/churches/${churchId}`, {
+    method: 'DELETE',
+  });
+
+  return response.data;
+}
+
+export async function joinChurch(churchId: string) {
+  const response = await apiRequest<{ message: string }>(`/churches/${churchId}/join`, {
+    method: 'POST',
+  });
+
+  return response.data;
+}
+
+export async function leaveChurch(churchId: string) {
+  const response = await apiRequest<{ message: string }>(`/churches/${churchId}/leave`, {
+    method: 'DELETE',
+  });
+
+  return response.data;
+}
+
+export async function listChurchJoinRequests() {
+  const response = await apiRequest<ListJoinRequestsResponse>('/churches/join-requests', {
+    method: 'GET',
+  });
+
+  return response.data.requests;
+}
+
+export async function approveChurchJoinRequest(requestId: string) {
+  const response = await apiRequest<{ message: string }>(
+    `/churches/join-requests/${requestId}/approve`,
+    {
+      method: 'POST',
+    },
+  );
 
   return response.data;
 }

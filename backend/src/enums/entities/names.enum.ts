@@ -13,6 +13,7 @@ export enum EntityEnum {
     USER_TASK = 'users_tasks',
     PARTICIPANTS = 'participants',
     USER_CHURCH = 'user_church',
+    CHURCH_JOIN_REQUEST = 'church_join_requests',
     VERIFICATION_CODE = 'verification_codes',
     PASSWORD_RESET_TOKEN = 'password_reset_tokens',
     USER_SECTOR = 'user_sectors',

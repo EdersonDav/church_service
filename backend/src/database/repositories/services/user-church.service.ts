@@ -25,6 +25,22 @@ export class UserChurchService implements UserChurchRepository {
     });
   }
 
+  async listByUser(user_id: UUID): Promise<UserChurch[]> {
+    return this.entity.find({
+      where: {
+        user_id,
+      },
+      relations: {
+        church: true,
+      },
+      order: {
+        church: {
+          name: 'ASC',
+        },
+      },
+    });
+  }
+
   async save(userChurch: Partial<UserChurch>): Promise<UserChurch> {
     const userChurchCreated = this.entity.create(userChurch);
     await this.entity.upsert(userChurchCreated, {

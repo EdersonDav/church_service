@@ -1,6 +1,8 @@
 import { Stack } from 'expo-router';
+import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { useSessionStore } from '@/stores/session-store';
 import '../global.css';
 
@@ -9,6 +11,15 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function Layout() {
   const hasHydrated = useSessionStore((state) => state.hasHydrated);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+
+    NavigationBar.setVisibilityAsync('hidden').catch(() => {});
+    NavigationBar.setBehaviorAsync('overlay-swipe').catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!hasHydrated) {

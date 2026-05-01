@@ -1,7 +1,7 @@
-import { Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getApiBaseUrl } from '@/lib/api';
+import { logout } from '@/lib/auth';
 import { useSessionStore } from '@/stores/session-store';
 
 function getInitials(name?: string | null) {
@@ -16,16 +16,23 @@ function getInitials(name?: string | null) {
 export default function AccountScreen() {
   const router = useRouter();
   const user = useSessionStore((state) => state.user);
+  const token = useSessionStore((state) => state.token);
   const clearSession = useSessionStore((state) => state.clearSession);
-  const apiBaseUrl = getApiBaseUrl();
 
-  function handleLogout() {
-    clearSession();
-    router.replace('/login');
+  async function handleLogout() {
+    try {
+      await logout();
+    } finally {
+      clearSession();
+      router.replace('/login');
+    }
   }
 
   return (
-    <View className="flex-1 bg-background px-6 pt-20">
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 80, paddingBottom: 128 }}
+      showsVerticalScrollIndicator={false}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <Text className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">Conta</Text>
@@ -64,22 +71,32 @@ export default function AccountScreen() {
       </View>
 
       <View className="mt-6 rounded-[28px] border border-surfaceAlt bg-surface px-5 py-5">
-        <Text className="text-lg font-bold text-textBase">Ambiente atual</Text>
+        <Text className="text-lg font-bold text-textBase">Informacoes da conta</Text>
 
         <View className="mt-4 rounded-2xl bg-background px-4 py-4">
           <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-textMuted">
-            API
+            Nome
           </Text>
-          <Text className="mt-2 text-sm leading-6 text-textBase">{apiBaseUrl}</Text>
+          <Text className="mt-2 text-sm leading-6 text-textBase">
+            {user?.name || 'Nome nao informado'}
+          </Text>
         </View>
 
         <View className="mt-4 rounded-2xl bg-background px-4 py-4">
           <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-textMuted">
-            Proximo passo
+            E-mail
           </Text>
           <Text className="mt-2 text-sm leading-6 text-textBase">
-            A partir daqui, da para evoluir para setores, membros, eventos e escalas vinculados a
-            uma igreja especifica.
+            {user?.email || 'E-mail nao informado'}
+          </Text>
+        </View>
+
+        <View className="mt-4 rounded-2xl bg-background px-4 py-4">
+          <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-textMuted">
+            Status
+          </Text>
+          <Text className="mt-2 text-sm leading-6 text-textBase">
+            {token ? 'Conta autenticada' : 'Sessao inativa'}
           </Text>
         </View>
       </View>
@@ -90,6 +107,6 @@ export default function AccountScreen() {
         <Ionicons name="log-out-outline" size={18} color="#FFFFFF" />
         <Text className="ml-2 text-base font-bold text-white">Sair da conta</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }

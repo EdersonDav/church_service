@@ -83,10 +83,20 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
   const payload = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
-    const message =
-      typeof payload === 'object' && payload && 'message' in payload
-        ? String(payload.message)
-        : 'Erro inesperado na requisicao.';
+    if (response.status === 401) {
+      useSessionStore.getState().clearSession();
+    }
+
+    const responseMessage =
+      typeof payload === 'object' && payload && 'message' in payload ? payload.message : null;
+
+    const message = Array.isArray(responseMessage)
+      ? responseMessage.join('\n')
+      : responseMessage
+        ? String(responseMessage)
+        : response.status === 401
+          ? 'Sessao expirada. Entre novamente.'
+          : 'Erro inesperado na requisicao.';
 
     throw new ApiError(message, response.status, payload);
   }

@@ -8,7 +8,9 @@ import {
   Get,
   NotFoundException,
   Delete,
-  Patch
+  Patch,
+  ForbiddenException,
+  Query
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -22,7 +24,8 @@ import {
 import { plainToClass } from 'class-transformer';
 
 import { CreateChurch, DeleteChurch, ListChurches, UpdateChurch } from '../../../../core/use-cases/church';
-import { CreateUserChurch, GetUserChurch } from '../../../../core/use-cases/user-church';
+import { CreateUserChurch, DeleteUserChurch, GetUserChurch } from '../../../../core/use-cases/user-church';
+import { DeleteUserSectorsByChurch } from '../../../../core/use-cases/user-sector';
 import {
   CreateChurchResponseData,
   CreateChurchBody,
@@ -35,6 +38,8 @@ import { AuthGuard, ChurchRoleGuard } from '../../../../core/guards';
 import { UUID } from 'crypto';
 import { ReqUserDecorator } from '../../../../common';
 import { ChurchRoleEnum } from '../../../../enums';
+import { ChurchJoinRequestStatusEnum } from '../../../../database/entities';
+import { ChurchJoinRequestRepository, ChurchRepository } from '../../../../database/repositories/interfaces';
 
 @ApiTags('Igrejas')
 @ApiBearerAuth()
@@ -46,7 +51,11 @@ export class ChurchController {
     private readonly getUserChurch: GetUserChurch,
     private readonly deleteChurch: DeleteChurch,
     private readonly updateChurch: UpdateChurch,
-    private readonly listChurches: ListChurches
+    private readonly listChurches: ListChurches,
+    private readonly churchRepository: ChurchRepository,
+    private readonly churchJoinRequestRepository: ChurchJoinRequestRepository,
+    private readonly deleteUserChurch: DeleteUserChurch,
+    private readonly deleteUserSectorsByChurch: DeleteUserSectorsByChurch
   ) { }
 
   @Post('')
@@ -87,6 +96,7 @@ export class ChurchController {
 
     const { data } = await this.createChurch.execute({
       name: body.name,
+      description: body.description,
       user_id: user.id
     });
 
@@ -132,12 +142,192 @@ export class ChurchController {
       },
     },
   })
-  async list(): Promise<ListChurchesResponse> {
-    const { data } = await this.listChurches.execute();
+  async list(
+    @ReqUserDecorator() user: { id: UUID }
+  ): Promise<ListChurchesResponse> {
+    const { data } = await this.listChurches.execute({ user_id: user.id });
 
     return plainToClass(ListChurchesResponse, { churches: data }, {
       excludeExtraneousValues: true
     });
+  }
+
+  @Get('search')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Buscar igrejas cadastradas para solicitação de entrada' })
+  async search(
+    @ReqUserDecorator() user: { id: UUID },
+    @Query('name') name?: string
+  ) {
+    const churches = await this.churchRepository.list();
+    const searchTerm = name?.trim().toLowerCase();
+    const filteredChurches = searchTerm
+      ? churches.filter((church) => church.name.toLowerCase().includes(searchTerm))
+      : churches;
+    const userChurches = await Promise.all(
+      filteredChurches.map((church) =>
+        this.getUserChurch.execute({
+          church_id: church.id,
+          user_id: user.id,
+        }),
+      ),
+    );
+
+    return {
+      churches: filteredChurches.map((church, index) => ({
+        id: church.id,
+        name: church.name,
+        description: church.description,
+        created_at: church.created_at,
+        updated_at: church.updated_at,
+        role: userChurches[index].data?.role ?? null,
+      })),
+    };
+  }
+
+  @Get('join-requests')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Listar solicitações pendentes para igrejas administradas' })
+  async listJoinRequests(
+    @ReqUserDecorator() user: { id: UUID }
+  ) {
+    const requests = await this.churchJoinRequestRepository.listPendingForAdmin(user.id);
+
+    return {
+      requests: requests.map((request) => ({
+        id: request.id,
+        status: request.status,
+        church_id: request.church_id,
+        user_id: request.user_id,
+        created_at: request.created_at,
+        updated_at: request.updated_at,
+        church: request.church
+          ? {
+            id: request.church.id,
+            name: request.church.name,
+            description: request.church.description,
+          }
+          : undefined,
+        user: request.user
+          ? {
+            id: request.user.id,
+            name: request.user.name,
+            email: request.user.email,
+          }
+          : undefined,
+      })),
+    };
+  }
+
+  @Post('join-requests/:request_id/approve')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Aprovar solicitação de entrada em uma igreja' })
+  async approveJoinRequest(
+    @Param('request_id') request_id: UUID,
+    @ReqUserDecorator() user: { id: UUID }
+  ): Promise<{ message: string }> {
+    const request = await this.churchJoinRequestRepository.getById(request_id);
+
+    if (!request || request.status !== ChurchJoinRequestStatusEnum.PENDING) {
+      throw new NotFoundException('Join request not found');
+    }
+
+    const { data: adminChurch } = await this.getUserChurch.execute({
+      church_id: request.church_id,
+      user_id: user.id,
+    });
+
+    if (!adminChurch || ![ChurchRoleEnum.ADMIN, ChurchRoleEnum.ROOT].includes(adminChurch.role)) {
+      throw new ForbiddenException('Only church admins can approve join requests');
+    }
+
+    const { data: currentMember } = await this.getUserChurch.execute({
+      church_id: request.church_id,
+      user_id: request.user_id,
+    });
+
+    if (!currentMember) {
+      await this.createUserChurch.execute({
+        church_id: request.church_id,
+        user_id: request.user_id,
+        role: ChurchRoleEnum.VOLUNTARY,
+      });
+    }
+
+    await this.churchJoinRequestRepository.updateStatus(request.id, ChurchJoinRequestStatusEnum.APPROVED);
+
+    return { message: 'Join request approved' };
+  }
+
+  @Post(':church_id/join')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Solicitar entrada em uma igreja como voluntário' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiOkResponse({
+    description: 'Solicitação enviada com sucesso',
+    schema: {
+      example: {
+        message: 'Join request sent',
+      },
+    },
+  })
+  async join(
+    @Param('church_id') church_id: UUID,
+    @ReqUserDecorator() user: { id: UUID }
+  ): Promise<{ message: string }> {
+    const churchExists = await this.churchRepository.getBy(church_id, 'id');
+
+    if (!churchExists) {
+      throw new NotFoundException('Church not found');
+    }
+
+    const { data: church } = await this.getUserChurch.execute({
+      church_id,
+      user_id: user.id,
+    });
+
+    if (church) {
+      return { message: 'Already part of this church' };
+    }
+
+    const currentRequest = await this.churchJoinRequestRepository.getByUserAndChurch(user.id, church_id);
+
+    if (currentRequest?.status === ChurchJoinRequestStatusEnum.PENDING) {
+      return { message: 'Join request already sent' };
+    }
+
+    await this.churchJoinRequestRepository.save({
+      church_id,
+      user_id: user.id,
+      status: ChurchJoinRequestStatusEnum.PENDING,
+    });
+
+    return { message: 'Join request sent' };
+  }
+
+  @Delete(':church_id/leave')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Sair de uma igreja vinculada ao usuário logado' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  async leave(
+    @Param('church_id') church_id: UUID,
+    @ReqUserDecorator() user: { id: UUID }
+  ): Promise<{ message: string }> {
+    const { data: membership } = await this.getUserChurch.execute({
+      church_id,
+      user_id: user.id,
+    });
+
+    if (!membership) {
+      throw new BadRequestException('User is not part of this church');
+    }
+
+    await Promise.all([
+      this.deleteUserChurch.execute({ church_id, user_id: user.id }),
+      this.deleteUserSectorsByChurch.execute({ church_id, user_id: user.id }),
+    ]);
+
+    return { message: 'Left church successfully' };
   }
 
   @Get(':church_id')

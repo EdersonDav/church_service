@@ -1,5 +1,6 @@
-import { Body, Controller, Post, UnauthorizedException, Res, Get, Query } from '@nestjs/common';
+import { Body, Controller, Post, UnauthorizedException, Res, Get, Query, Logger, Req, UseGuards } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBadRequestResponse,
   ApiBody,
   ApiOkResponse,
@@ -8,7 +9,8 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { AuthGuard } from '../../../../core/guards';
 import { CreateToken } from '../../../../core/use-cases/auth/create';
 import { ValidateUser } from '../../../../core/use-cases/auth/validate';
 import { CreatePasswordResetToken, VerifyToken } from "../../../../core/use-cases/password-reset-token";
@@ -30,6 +32,8 @@ import {
 @ApiTags('Autenticação')
 @Controller('auth')
 export class LoginController {
+  private readonly logger = new Logger(LoginController.name);
+
   constructor(
     private readonly createToken: CreateToken,
     private readonly validateUser: ValidateUser,
@@ -40,6 +44,30 @@ export class LoginController {
     private readonly sendResetPasswordToken: SendResetPasswordToken,
     private readonly updatePasswordUser: UpdatePasswordUser
   ) { }
+
+  private sanitizeBody(body: object) {
+    const hiddenFields = ['password', 'token'];
+
+    return Object.entries(body).reduce<Record<string, unknown>>((acc, [key, value]) => {
+      acc[key] = hiddenFields.includes(key.toLowerCase()) ? '[hidden]' : value;
+      return acc;
+    }, {});
+  }
+
+  private logRequestResponse(
+    req: Request,
+    body: object,
+    data: unknown,
+    level: 'log' | 'warn' = 'log',
+  ) {
+    this.logger[level]({
+      url: req.originalUrl || req.url,
+      body: this.sanitizeBody(body),
+      response: {
+        data,
+      },
+    });
+  }
 
   @Post('login')
   @ApiOperation({ summary: 'Autenticar usuário e gerar token JWT' })
@@ -77,10 +105,12 @@ export class LoginController {
   })
   async login(
     @Body() body: LoginBody,
-    @Res() res: Response
+    @Res() res: Response,
+    @Req() req: Request
   ): Promise<Response<LoginResponse>> {
     const { data: user } = await this.validateUser.execute({ email: body.email, password: body.password });
     if (!user) {
+      this.logRequestResponse(req, body, null, 'warn');
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
@@ -89,6 +119,7 @@ export class LoginController {
       await this.createVerificationCode.execute({
         user,
       });
+      this.logRequestResponse(req, body, null, 'warn');
       return res.status(401).send({ message: 'Verify your email' });
     }
 
@@ -96,8 +127,36 @@ export class LoginController {
 
     res.setHeader('Authorization', `Bearer ${access_token}`);
 
-    return res.status(200).send({ data: { email, name } });
+    const data = { email, name };
+    this.logRequestResponse(req, body, data);
 
+    return res.status(200).send({ data });
+
+  }
+
+  @Post('logout')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Registrar saída do usuário autenticado' })
+  @ApiOkResponse({
+    description: 'Saída registrada com sucesso',
+    schema: {
+      example: {
+        data: {
+          message: 'Logout registered',
+        },
+      },
+    },
+  })
+  async logout(
+    @Req() req: Request,
+    @Body() body: Record<string, unknown>,
+  ): Promise<{ data: { message: string } }> {
+    const data = { message: 'Logout registered' };
+
+    this.logRequestResponse(req, body ?? {}, data);
+
+    return { data };
   }
 
   @Get('validate-reset-token')

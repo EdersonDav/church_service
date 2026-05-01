@@ -13,6 +13,10 @@ type RegisterResponse = {
   message: string;
 };
 
+type ForgotPasswordResponse = {
+  message: string;
+};
+
 type VerifyCodeResponse = {
   data: {
     message: string;
@@ -42,13 +46,23 @@ export type VerifyCodePayload = {
   code: string;
 };
 
+export async function forgotPassword(email: string) {
+  const response = await apiRequest<ForgotPasswordResponse>('/auth/forgot-password', {
+    method: 'POST',
+    body: { email },
+  });
+
+  return response.data;
+}
+
 export async function login(payload: LoginPayload) {
   const response = await apiRequest<LoginResponse>('/auth/login', {
     method: 'POST',
     body: payload,
   });
 
-  const authorizationHeader = response.headers.get('authorization');
+  const authorizationHeader =
+    response.headers.get('Authorization') ?? response.headers.get('authorization');
   const token = authorizationHeader?.replace(/^Bearer\s+/i, '').trim();
 
   if (!token) {
@@ -59,6 +73,12 @@ export async function login(payload: LoginPayload) {
     token,
     user: response.data.data,
   };
+}
+
+export async function logout() {
+  await apiRequest<{ message: string }>('/auth/logout', {
+    method: 'POST',
+  });
 }
 
 export async function register(payload: RegisterPayload) {

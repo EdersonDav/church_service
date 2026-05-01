@@ -1,10 +1,29 @@
 import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSessionStore } from '@/stores/session-store';
+
+type TabIconProps = {
+  color: string;
+  focused: boolean;
+  icon: React.ComponentProps<typeof IconSymbol>['name'];
+  label: string;
+};
+
+function TabIcon({ color, focused, icon, label }: TabIconProps) {
+  return (
+    <View
+      className={`h-12 flex-row items-center justify-center rounded-full ${
+        focused ? 'min-w-[116px] bg-surfaceAlt px-5' : 'w-14'
+      }`}>
+      <IconSymbol size={24} name={icon} color={color} />
+      {focused ? <Text className="ml-3 text-sm font-extrabold text-white">{label}</Text> : null}
+    </View>
+  );
+}
 
 export default function TabLayout() {
   const token = useSessionStore((state) => state.token);
@@ -24,32 +43,29 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarActiveTintColor: '#F8FAFC',
-        tabBarInactiveTintColor: '#94A3B8',
-        tabBarActiveBackgroundColor: '#334155',
+        tabBarInactiveTintColor: '#F8FAFC',
         tabBarHideOnKeyboard: true,
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '700',
-          letterSpacing: 0.3,
-        },
+        tabBarShowLabel: false,
         tabBarItemStyle: {
-          marginHorizontal: 6,
-          marginVertical: 6,
-          borderRadius: 18,
+          height: 56,
+          marginHorizontal: 4,
+          marginVertical: 4,
+          borderRadius: 999,
         },
         tabBarStyle: {
           position: 'absolute',
-          left: 16,
-          right: 16,
-          bottom: 20,
-          height: 74,
-          paddingTop: 8,
-          paddingBottom: Platform.OS === 'ios' ? 10 : 8,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: Platform.OS === 'ios' ? 78 : 68,
+          paddingHorizontal: 14,
+          paddingTop: 6,
+          paddingBottom: Platform.OS === 'ios' ? 16 : 6,
           borderTopWidth: 0,
-          borderRadius: 28,
-          backgroundColor: '#1E293B',
+          borderRadius: 0,
+          backgroundColor: '#171717',
           elevation: 0,
-          shadowColor: '#020617',
+          shadowColor: '#000000',
           shadowOffset: {
             width: 0,
             height: 12,
@@ -61,16 +77,32 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Igrejas',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="building.2.fill" color={color} />,
+          title: 'Home',
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon color={color} focused={focused} icon="house.fill" label="Home" />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: 'Escalas',
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon color={color} focused={focused} icon="calendar" label="Escalas" />
+          ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
           title: 'Conta',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.crop.circle.fill" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon
+              color={color}
+              focused={focused}
+              icon="person.crop.circle.fill"
+              label="Conta"
+            />
           ),
         }}
       />

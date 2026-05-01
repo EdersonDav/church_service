@@ -19,7 +19,8 @@ import {
   UnavailabilityService,
   UserTaskService,
   ExtraEventService,
-  ScaleSongService
+  ScaleSongService,
+  ChurchJoinRequestService
 } from './repositories/services';
 
 import {
@@ -40,7 +41,8 @@ import {
   UnavailabilityRepository,
   UserTaskRepository,
   ExtraEventRepository,
-  ScaleSongRepository
+  ScaleSongRepository,
+  ChurchJoinRequestRepository
 } from './repositories/interfaces';
 
 import {
@@ -60,7 +62,8 @@ import {
   PasswordResetToken,
   UserSector,
   ExtraEvent,
-  ScaleSong
+  ScaleSong,
+  ChurchJoinRequest
 } from './entities';
 
 const entities = [
@@ -75,6 +78,7 @@ const entities = [
   Sector,
   Unavailability,
   UserChurch,
+  ChurchJoinRequest,
   UserTask,
   VerificationCode,
   PasswordResetToken,
@@ -148,6 +152,11 @@ const entities = [
       provide: UserChurchRepository,
       useClass: UserChurchService,
     },
+    ChurchJoinRequestService,
+    {
+      provide: ChurchJoinRequestRepository,
+      useClass: ChurchJoinRequestService,
+    },
     SectorService,
     {
       provide: SectorRepository,
@@ -210,6 +219,8 @@ const entities = [
     PasswordResetTokenService,
     UserChurchRepository,
     UserChurchService,
+    ChurchJoinRequestRepository,
+    ChurchJoinRequestService,
     SectorRepository,
     SectorService,
     UserSectorRepository,

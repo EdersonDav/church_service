@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { ChurchRepository } from '../../../../database/repositories/interfaces';
+import { UserChurchRepository } from '../../../../database/repositories/interfaces';
+import { Input } from './input';
 import { Output } from './output';
 
 @Injectable()
 export class ListChurches {
   constructor(
-    private readonly churchRepository: ChurchRepository
+    private readonly userChurchRepository: UserChurchRepository
   ) { }
 
-  async execute(): Promise<Output> {
-    const data = await this.churchRepository.list();
-    return { data };
+  async execute({ user_id }: Input): Promise<Output> {
+    const data = await this.userChurchRepository.listByUser(user_id);
+    return { data: data.map((item) => item.church) };
   }
 }
