@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, usePathname, useRouter } from 'expo-router';
 import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -10,6 +10,9 @@ import '../global.css';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function Layout() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const token = useSessionStore((state) => state.token);
   const hasHydrated = useSessionStore((state) => state.hasHydrated);
 
   useEffect(() => {
@@ -29,6 +32,22 @@ export default function Layout() {
     // Só libera a UI quando a sessão persistida já foi restaurada
     SplashScreen.hideAsync();
   }, [hasHydrated]);
+
+  useEffect(() => {
+    if (!hasHydrated || token) {
+      return;
+    }
+
+    const isPublicRoute =
+      pathname === '/' ||
+      pathname === '/login' ||
+      pathname === '/register' ||
+      pathname === '/verify-code';
+
+    if (!isPublicRoute) {
+      router.replace('/login');
+    }
+  }, [hasHydrated, pathname, router, token]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

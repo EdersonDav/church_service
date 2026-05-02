@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  Pressable,
   RefreshControl,
   ScrollView,
   Text,
@@ -91,6 +93,7 @@ export default function ChurchesScreen() {
   }, [discoverChurches, joinSearchTerm]);
 
   const currentChurchIds = useMemo(() => new Set(churches.map((church) => church.id)), [churches]);
+  const isChurchDialogBusy = isSubmitting || isJoining || isLeaving;
 
   useEffect(() => {
     void loadChurches();
@@ -269,6 +272,15 @@ export default function ChurchesScreen() {
     });
   }
 
+  function closeChurchDialogs() {
+    if (isChurchDialogBusy) {
+      return;
+    }
+
+    setIsComposerOpen(false);
+    setIsJoinOpen(false);
+  }
+
   async function handleApproveJoinRequest(requestId: string) {
     try {
       setApprovingRequestId(requestId);
@@ -402,184 +414,12 @@ export default function ChurchesScreen() {
               </View>
             ) : null}
 
-            {isActionMenuOpen ? (
-              <View className="absolute right-0 top-14 z-10 w-56 rounded-[24px] border border-surfaceAlt bg-surface p-2">
-                <TouchableOpacity
-                  className="flex-row items-center rounded-2xl px-4 py-3"
-                  onPress={openCreateChurch}>
-                  <Ionicons name="add-circle-outline" size={20} color="#F8FAFC" />
-                  <Text className="ml-3 font-bold text-textBase">Criar igreja</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  className="flex-row items-center rounded-2xl px-4 py-3"
-                  onPress={openJoinChurch}>
-                  <Ionicons name="enter-outline" size={20} color="#F8FAFC" />
-                  <Text className="ml-3 font-bold text-textBase">Participar</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
           </View>
         </View>
 
         <View className="mb-5">
           <Text className="text-2xl font-bold text-textBase">Igrejas que faco parte</Text>
         </View>
-
-        {isComposerOpen && (
-          <View className="mb-8 rounded-[28px] border border-surfaceAlt bg-surface px-5 py-5">
-            <Text className="text-xl font-bold text-textBase">Nova igreja</Text>
-            <Text className="mt-2 text-sm leading-6 text-textMuted">
-              O criador entra como administrador automaticamente no backend atual.
-            </Text>
-
-            <View className="mt-5 gap-4">
-              <View>
-                <Text className="mb-2 ml-1 text-sm font-semibold uppercase tracking-wider text-textMuted">
-                  Nome
-                </Text>
-                <TextInput
-                  className="rounded-2xl border border-surfaceAlt bg-background px-4 py-4 text-base text-textBase"
-                  placeholder="Ex: Igreja Vida em Cristo"
-                  placeholderTextColor="#64748B"
-                  cursorColor="#6366F1"
-                  value={name}
-                  onChangeText={setName}
-                />
-              </View>
-
-              <View>
-                <Text className="mb-2 ml-1 text-sm font-semibold uppercase tracking-wider text-textMuted">
-                  Descricao
-                </Text>
-                <TextInput
-                  className="min-h-[104px] rounded-2xl border border-surfaceAlt bg-background px-4 py-4 text-base text-textBase"
-                  placeholder="Comunidade localizada no centro da cidade"
-                  placeholderTextColor="#64748B"
-                  cursorColor="#6366F1"
-                  multiline
-                  textAlignVertical="top"
-                  value={description}
-                  onChangeText={setDescription}
-                />
-              </View>
-            </View>
-
-            {!!createErrorMessage && (
-              <View className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
-                <Text className="text-sm text-danger">{createErrorMessage}</Text>
-              </View>
-            )}
-
-            <TouchableOpacity
-              className={`mt-5 items-center rounded-2xl py-4 ${
-                isSubmitting ? 'bg-surfaceAlt' : 'bg-primary'
-              }`}
-              onPress={handleCreateChurch}
-              disabled={isSubmitting}>
-              <Text className="text-base font-bold text-white">
-                {isSubmitting ? 'Criando igreja...' : 'Salvar igreja'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {isJoinOpen && (
-          <View className="mb-8 rounded-[28px] border border-surfaceAlt bg-surface px-5 py-5">
-            <Text className="text-xl font-bold text-textBase">Participar de igreja</Text>
-            <Text className="mt-2 text-sm leading-6 text-textMuted">
-              Busque pelo nome e use a seta verde para solicitar entrada.
-            </Text>
-
-            <View className="mt-5 flex-row items-center rounded-2xl border border-surfaceAlt bg-background px-4">
-              <Ionicons name="search-outline" size={20} color="#94A3B8" />
-              <TextInput
-                className="ml-3 flex-1 py-4 text-base text-textBase"
-                placeholder="Buscar igreja pelo nome"
-                placeholderTextColor="#64748B"
-                cursorColor="#6366F1"
-                autoCorrect={false}
-                value={joinSearchTerm}
-                onChangeText={setJoinSearchTerm}
-              />
-            </View>
-
-            {!!joinErrorMessage && (
-              <View className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
-                <Text className="text-sm text-danger">{joinErrorMessage}</Text>
-              </View>
-            )}
-
-            {!!joinSuccessMessage && (
-              <View className="mt-4 rounded-2xl border border-success/40 bg-success/10 px-4 py-3">
-                <Text className="text-sm text-success">{joinSuccessMessage}</Text>
-              </View>
-            )}
-
-            <View className="mt-5 overflow-hidden rounded-2xl border border-surfaceAlt">
-              {isLoadingDiscoverChurches ? (
-                <View className="items-center bg-background px-4 py-8">
-                  <ActivityIndicator color="#6366F1" />
-                  <Text className="mt-3 text-sm text-textMuted">Carregando igrejas...</Text>
-                </View>
-              ) : null}
-
-              {!isLoadingDiscoverChurches && filteredDiscoverChurches.length === 0 ? (
-                <View className="bg-background px-4 py-8">
-                  <Text className="text-sm font-semibold text-textBase">Nenhuma igreja encontrada</Text>
-                  <Text className="mt-1 text-xs leading-5 text-textMuted">
-                    Ajuste o nome buscado ou tente novamente mais tarde.
-                  </Text>
-                </View>
-              ) : null}
-
-              {!isLoadingDiscoverChurches &&
-                filteredDiscoverChurches.map((church, index) => {
-                  const isCurrentMember = Boolean(church.role) || currentChurchIds.has(church.id);
-                  const isRequesting = joiningChurchId === church.id;
-                  const isLeavingCurrent = leavingChurchId === church.id;
-                  const isLastItem = index === filteredDiscoverChurches.length - 1;
-
-                  return (
-                    <View
-                      key={church.id}
-                      className={`flex-row items-center bg-background px-4 py-4 ${
-                        isLastItem ? '' : 'border-b border-surfaceAlt'
-                      }`}>
-                      <Text className="mr-3 flex-1 text-base font-bold text-textBase">{church.name}</Text>
-
-                      {isCurrentMember ? (
-                        <View className="mr-2 h-9 w-9 items-center justify-center rounded-full bg-success/10">
-                          <Ionicons name="checkmark" size={20} color="#22C55E" />
-                        </View>
-                      ) : null}
-
-                      <TouchableOpacity
-                        className={`h-10 w-10 items-center justify-center rounded-full ${
-                          isCurrentMember ? 'bg-danger/10' : 'bg-success/10'
-                        }`}
-                        onPress={() =>
-                          isCurrentMember ? handleLeaveChurch(church.id) : handleJoinChurch(church.id)
-                        }
-                        disabled={isJoining || isLeaving}>
-                        <Ionicons
-                          name={
-                            isRequesting || isLeavingCurrent
-                              ? 'ellipsis-horizontal'
-                              : isCurrentMember
-                                ? 'arrow-back'
-                                : 'arrow-forward'
-                          }
-                          size={21}
-                          color={isCurrentMember ? '#F87171' : '#22C55E'}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
-            </View>
-          </View>
-        )}
 
         {!!errorMessage && (
           <View className="mb-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
@@ -645,6 +485,216 @@ export default function ChurchesScreen() {
           ))}
 
       </ScrollView>
+
+      <Modal
+        visible={isActionMenuOpen}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setIsActionMenuOpen(false)}>
+        <Pressable className="flex-1" onPress={() => setIsActionMenuOpen(false)}>
+          <Pressable
+            className="absolute right-6 top-32 w-56 rounded-[24px] border border-surfaceAlt bg-surface p-2"
+            onPress={(event) => event.stopPropagation()}>
+            <TouchableOpacity
+              className="flex-row items-center rounded-2xl px-4 py-3"
+              onPress={openCreateChurch}>
+              <Ionicons name="add-circle-outline" size={20} color="#F8FAFC" />
+              <Text className="ml-3 font-bold text-textBase">Criar igreja</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-row items-center rounded-2xl px-4 py-3"
+              onPress={openJoinChurch}>
+              <Ionicons name="enter-outline" size={20} color="#F8FAFC" />
+              <Text className="ml-3 font-bold text-textBase">Participar</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={isComposerOpen}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeChurchDialogs}>
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <Pressable className="flex-1 justify-center bg-black/60 px-5" onPress={closeChurchDialogs}>
+            <Pressable
+              className="rounded-[28px] border border-surfaceAlt bg-surface px-5 py-5"
+              onPress={(event) => event.stopPropagation()}>
+              <Text className="text-xl font-bold text-textBase">Nova igreja</Text>
+              <Text className="mt-2 text-sm leading-6 text-textMuted">
+                O criador entra como administrador automaticamente no backend atual.
+              </Text>
+
+              <View className="mt-5 gap-4">
+                <View>
+                  <Text className="mb-2 ml-1 text-sm font-semibold uppercase tracking-wider text-textMuted">
+                    Nome
+                  </Text>
+                  <TextInput
+                    className="rounded-2xl border border-surfaceAlt bg-background px-4 py-4 text-base text-textBase"
+                    placeholder="Ex: Igreja Vida em Cristo"
+                    placeholderTextColor="#64748B"
+                    cursorColor="#6366F1"
+                    value={name}
+                    onChangeText={setName}
+                  />
+                </View>
+
+                <View>
+                  <Text className="mb-2 ml-1 text-sm font-semibold uppercase tracking-wider text-textMuted">
+                    Descricao
+                  </Text>
+                  <TextInput
+                    className="min-h-[104px] rounded-2xl border border-surfaceAlt bg-background px-4 py-4 text-base text-textBase"
+                    placeholder="Comunidade localizada no centro da cidade"
+                    placeholderTextColor="#64748B"
+                    cursorColor="#6366F1"
+                    multiline
+                    textAlignVertical="top"
+                    value={description}
+                    onChangeText={setDescription}
+                  />
+                </View>
+              </View>
+
+              {!!createErrorMessage && (
+                <View className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
+                  <Text className="text-sm text-danger">{createErrorMessage}</Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                className={`mt-5 items-center rounded-2xl py-4 ${
+                  isSubmitting ? 'bg-surfaceAlt' : 'bg-primary'
+                }`}
+                onPress={handleCreateChurch}
+                disabled={isSubmitting}>
+                <Text className="text-base font-bold text-white">
+                  {isSubmitting ? 'Criando igreja...' : 'Salvar igreja'}
+                </Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      <Modal
+        visible={isJoinOpen}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeChurchDialogs}>
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <Pressable className="flex-1 justify-center bg-black/60 px-5" onPress={closeChurchDialogs}>
+            <Pressable
+              className="max-h-[86%] rounded-[28px] border border-surfaceAlt bg-surface px-5 py-5"
+              onPress={(event) => event.stopPropagation()}>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                <Text className="text-xl font-bold text-textBase">Participar de igreja</Text>
+                <Text className="mt-2 text-sm leading-6 text-textMuted">
+                  Busque pelo nome e use a seta verde para solicitar entrada.
+                </Text>
+
+                <View className="mt-5 flex-row items-center rounded-2xl border border-surfaceAlt bg-background px-4">
+                  <Ionicons name="search-outline" size={20} color="#94A3B8" />
+                  <TextInput
+                    className="ml-3 flex-1 py-4 text-base text-textBase"
+                    placeholder="Buscar igreja pelo nome"
+                    placeholderTextColor="#64748B"
+                    cursorColor="#6366F1"
+                    autoCorrect={false}
+                    value={joinSearchTerm}
+                    onChangeText={setJoinSearchTerm}
+                  />
+                </View>
+
+                {!!joinErrorMessage && (
+                  <View className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
+                    <Text className="text-sm text-danger">{joinErrorMessage}</Text>
+                  </View>
+                )}
+
+                {!!joinSuccessMessage && (
+                  <View className="mt-4 rounded-2xl border border-success/40 bg-success/10 px-4 py-3">
+                    <Text className="text-sm text-success">{joinSuccessMessage}</Text>
+                  </View>
+                )}
+
+                <View className="mt-5 overflow-hidden rounded-2xl border border-surfaceAlt">
+                  {isLoadingDiscoverChurches ? (
+                    <View className="items-center bg-background px-4 py-8">
+                      <ActivityIndicator color="#6366F1" />
+                      <Text className="mt-3 text-sm text-textMuted">Carregando igrejas...</Text>
+                    </View>
+                  ) : null}
+
+                  {!isLoadingDiscoverChurches && filteredDiscoverChurches.length === 0 ? (
+                    <View className="bg-background px-4 py-8">
+                      <Text className="text-sm font-semibold text-textBase">Nenhuma igreja encontrada</Text>
+                      <Text className="mt-1 text-xs leading-5 text-textMuted">
+                        Ajuste o nome buscado ou tente novamente mais tarde.
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {!isLoadingDiscoverChurches &&
+                    filteredDiscoverChurches.map((church, index) => {
+                      const isCurrentMember = Boolean(church.role) || currentChurchIds.has(church.id);
+                      const isRequesting = joiningChurchId === church.id;
+                      const isLeavingCurrent = leavingChurchId === church.id;
+                      const isLastItem = index === filteredDiscoverChurches.length - 1;
+
+                      return (
+                        <View
+                          key={church.id}
+                          className={`flex-row items-center bg-background px-4 py-4 ${
+                            isLastItem ? '' : 'border-b border-surfaceAlt'
+                          }`}>
+                          <Text className="mr-3 flex-1 text-base font-bold text-textBase">{church.name}</Text>
+
+                          {isCurrentMember ? (
+                            <View className="mr-2 h-9 w-9 items-center justify-center rounded-full bg-success/10">
+                              <Ionicons name="checkmark" size={20} color="#22C55E" />
+                            </View>
+                          ) : null}
+
+                          <TouchableOpacity
+                            className={`h-10 w-10 items-center justify-center rounded-full ${
+                              isCurrentMember ? 'bg-danger/10' : 'bg-success/10'
+                            }`}
+                            onPress={() =>
+                              isCurrentMember ? handleLeaveChurch(church.id) : handleJoinChurch(church.id)
+                            }
+                            disabled={isJoining || isLeaving}>
+                            <Ionicons
+                              name={
+                                isRequesting || isLeavingCurrent
+                                  ? 'ellipsis-horizontal'
+                                  : isCurrentMember
+                                    ? 'arrow-back'
+                                    : 'arrow-forward'
+                              }
+                              size={21}
+                              color={isCurrentMember ? '#F87171' : '#22C55E'}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      );
+                    })}
+                </View>
+              </ScrollView>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }

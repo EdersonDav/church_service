@@ -9,9 +9,12 @@ export class ListUserTasks {
         private readonly userTaskRepository: UserTaskRepository,
     ) { }
 
-    async execute({ user_id }: Input): Promise<Output> {
+    async execute({ user_id, sector_id }: Input): Promise<Output> {
         const relations = await this.userTaskRepository.findByUser(user_id);
-        const tasks = relations.map((relation) => relation.task).filter((task): task is NonNullable<typeof task> => !!task);
+        const tasks = relations
+            .map((relation) => relation.task)
+            .filter((task): task is NonNullable<typeof task> => !!task)
+            .filter((task) => !sector_id || task.sector_id === sector_id);
         return { data: tasks };
     }
 }

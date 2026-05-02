@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique } from 'typeorm';
 import { BaseEntity } from './base';
 import { EntityEnum } from '../../enums';
 import { Sector } from './sectors.entity';
@@ -21,6 +21,7 @@ export class Task extends BaseEntity {
   sector_id!: string;
 
   @ManyToOne(() => Sector, (sector) => sector.tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @JoinColumn({ name: 'sector_id' })
   sector!: Sector;
 
   @OneToMany(() => Participant, (participant) => participant.task)

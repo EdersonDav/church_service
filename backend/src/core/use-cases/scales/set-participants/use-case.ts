@@ -29,17 +29,22 @@ export class SetScaleParticipants {
             throw new NotFoundException('Scale not found');
         }
 
-        const uniqueParticipantsMap = new Map<string, { user_id: string; task_id: string }>();
+        const uniqueParticipantsMap = new Map<string, { user_id: string; task_id?: string | null }>();
         for (const participant of participants) {
-            const key = `${participant.user_id}:${participant.task_id}`;
+            const key = participant.user_id;
             if (!uniqueParticipantsMap.has(key)) {
-                uniqueParticipantsMap.set(key, participant);
+                uniqueParticipantsMap.set(key, {
+                    user_id: participant.user_id,
+                    task_id: participant.task_id || null,
+                });
             }
         }
 
         const uniqueParticipants = Array.from(uniqueParticipantsMap.values());
 
-        const taskIds = Array.from(new Set(uniqueParticipants.map((item) => item.task_id)));
+        const taskIds = Array.from(
+            new Set(uniqueParticipants.map((item) => item.task_id).filter((task_id): task_id is string => !!task_id))
+        );
         const tasks = await this.taskRepository.findByIds(taskIds);
 
         if (tasks.length !== taskIds.length) {
@@ -76,26 +81,40 @@ export class SetScaleParticipants {
         }
 
         const currentParticipants = await this.participantRepository.findByScale(scale_id);
-        const desiredKeys = new Set(uniqueParticipants.map((item) => `${item.user_id}:${item.task_id}`));
+        const desiredKeys = new Set(uniqueParticipants.map((item) => item.user_id));
 
-        const removals = currentParticipants.filter((participant) => !desiredKeys.has(`${participant.user_id}:${participant.task_id}`));
+        const removals = currentParticipants.filter((participant) => !desiredKeys.has(participant.user_id));
         await Promise.all(removals.map((participant) => this.participantRepository.delete(participant.id)));
 
-        const currentKeys = new Set(currentParticipants.map((participant) => `${participant.user_id}:${participant.task_id}`));
-        const creations = uniqueParticipants.filter((item) => !currentKeys.has(`${item.user_id}:${item.task_id}`));
+        const currentByUser = new Map(currentParticipants.map((participant) => [participant.user_id, participant]));
+        const creations = uniqueParticipants.filter((item) => !currentByUser.has(item.user_id));
+        const updates = uniqueParticipants.filter((item) => {
+            const current = currentByUser.get(item.user_id);
+            return current && (current.task_id ?? null) !== (item.task_id ?? null);
+        });
 
         await Promise.all(creations.map((participant) => this.participantRepository.save({
             scale_id,
             user_id: participant.user_id,
-            task_id: participant.task_id,
+            task_id: participant.task_id ?? null,
         })));
+
+        await Promise.all(updates.map((participant) => {
+            const current = currentByUser.get(participant.user_id);
+            return current
+                ? this.participantRepository.save({
+                    ...current,
+                    task_id: participant.task_id ?? null,
+                })
+                : Promise.resolve(null);
+        }));
 
         const updated = await this.participantRepository.findByScale(scale_id);
 
         // Ensure returned participants follow the requested order when possible
         const ordered = uniqueParticipants.length
             ? uniqueParticipants
-                .map((item) => updated.find((participant) => participant.user_id === item.user_id && participant.task_id === item.task_id))
+                .map((item) => updated.find((participant) => participant.user_id === item.user_id))
                 .filter((participant): participant is NonNullable<typeof participant> => !!participant)
             : updated;
 

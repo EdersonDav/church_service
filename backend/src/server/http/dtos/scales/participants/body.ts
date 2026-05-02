@@ -1,12 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsUUID, ValidateNested } from 'class-validator';
+import { IsArray, IsOptional, IsUUID, ValidateNested } from 'class-validator';
 
 class ParticipantItem {
     @IsUUID()
     user_id!: string;
 
+    @IsOptional()
     @IsUUID()
-    task_id!: string;
+    task_id?: string | null;
 }
 
 export class SetScaleParticipantsBody {

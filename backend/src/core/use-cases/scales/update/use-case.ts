@@ -9,24 +9,29 @@ export class UpdateScale {
         private readonly scaleRepository: ScaleRepository,
     ) { }
 
-    async execute({ scale_id, sector_id, date }: Input): Promise<Output> {
+    async execute({ scale_id, sector_id, title, date }: Input): Promise<Output> {
         const scale = await this.scaleRepository.findById(scale_id);
 
         if (!scale || scale.sector_id !== sector_id) {
             throw new NotFoundException('Scale not found');
         }
 
-        if (!date) {
+        if (!date && !title) {
             return { data: scale };
         }
 
-        const conflict = await this.scaleRepository.findBySectorAndDate(sector_id, date);
+        const conflict = date
+            ? await this.scaleRepository.findBySectorAndDate(sector_id, date)
+            : null;
 
         if (conflict && conflict.id !== scale_id) {
             throw new BadRequestException('A scale already exists for this date');
         }
 
-        const updated = await this.scaleRepository.update(scale_id, { date });
+        const updated = await this.scaleRepository.update(scale_id, {
+            ...(date ? { date } : {}),
+            ...(title ? { title } : {}),
+        });
 
         if (!updated) {
             throw new NotFoundException('Scale not found');

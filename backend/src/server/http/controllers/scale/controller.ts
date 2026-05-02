@@ -87,7 +87,7 @@ export class ScaleController {
   private toScaleDto(scale: any): ScaleDto {
     const participants = (scale.participants || []).map((participant: any) => ({
       user_id: participant.user_id,
-      task_id: participant.task_id,
+      task_id: participant.task_id ?? null,
       user_name: participant.user?.name,
       task_name: participant.task?.name,
     }));
@@ -138,7 +138,15 @@ export class ScaleController {
       throw new BadRequestException('Invalid date');
     }
 
-    const { data } = await this.createScale.execute({ sector_id, date });
+    if (!body.title?.trim()) {
+      throw new BadRequestException('Title is necessary');
+    }
+
+    const { data } = await this.createScale.execute({
+      sector_id,
+      title: body.title.trim(),
+      date,
+    });
     const { data: scale } = await this.getScale.execute({ scale_id: data.id });
 
     return this.toScaleDto(scale || { ...data, participants: [] });
@@ -284,7 +292,12 @@ export class ScaleController {
       throw new BadRequestException('Invalid date');
     }
 
-    await this.updateScale.execute({ scale_id, sector_id, date });
+    await this.updateScale.execute({
+      scale_id,
+      sector_id,
+      title: body.title?.trim(),
+      date,
+    });
     const { data: fullScale } = await this.getScale.execute({ scale_id });
 
     if (!fullScale) {

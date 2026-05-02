@@ -1,6 +1,6 @@
 export type ParticipantInput = {
     user_id: string;
-    task_id: string;
+    task_id?: string | null;
 };
 
 export class Input {

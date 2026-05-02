@@ -7,8 +7,8 @@ export class ScaleParticipantDto {
     user_id!: string;
 
     @Expose()
-    @ApiProperty({ example: '2bf6c88b-1b0e-4a9f-b5f7-68bb5f4f5e39', description: 'Task identifier' })
-    task_id!: string;
+    @ApiProperty({ example: '2bf6c88b-1b0e-4a9f-b5f7-68bb5f4f5e39', description: 'Task identifier', required: false })
+    task_id?: string | null;
 
     @Expose()
     @ApiProperty({ example: 'Minister', required: false })

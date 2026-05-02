@@ -8,6 +8,10 @@ export class ScaleDto {
     id!: string;
 
     @Expose()
+    @ApiProperty({ example: 'Culto de domingo', description: 'Scale title' })
+    title!: string;
+
+    @Expose()
     @ApiProperty({ example: '2024-06-21T18:00:00.000Z', description: 'Scheduled date in ISO format' })
     @Transform(({ value }) => value instanceof Date ? value.toISOString() : value)
     date!: string;

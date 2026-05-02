@@ -7,6 +7,7 @@ import {
   BadRequestException,
   Get,
   Patch,
+  Put,
   Delete,
 } from '@nestjs/common';
 import {
@@ -33,9 +34,12 @@ import {
 } from '../../../dtos';
 import { AuthGuard, ChurchRoleGuard, SectorGuard } from '../../../../../core/guards';
 import { UUID } from 'crypto';
-import { SectorRoleEnum } from '../../../../../enums';
+import { ChurchRoleEnum, SectorRoleEnum } from '../../../../../enums';
 import { GetUserChurch } from '../../../../../core/use-cases/user-church';
 import { GetSector } from '../../../../../core/use-cases/sectors/get';
+import { ReqUserDecorator } from '../../../../../common';
+import { ListUserTasks, SetUserTasks } from '../../../../../core/use-cases/user-task';
+import { UpdateUserTasksBody, UserTasksResponse } from '../../../dtos/user/tasks';
 
 @ApiTags('Membros do Setor')
 @ApiBearerAuth()
@@ -50,6 +54,8 @@ export class SectorMembersController {
     private readonly deleteUserSector: DeleteUserSector,
     private readonly getUserChurch: GetUserChurch,
     private readonly getSector: GetSector,
+    private readonly listUserTasks: ListUserTasks,
+    private readonly setUserTasks: SetUserTasks,
   ) { }
 
   private async ensureSectorBelongsToChurch(church_id: UUID, sector_id: UUID): Promise<void> {
@@ -81,6 +87,29 @@ export class SectorMembersController {
     if (!churchMember) {
       throw new BadRequestException('Member is not part of this church');
     }
+  }
+
+  private async ensureCanViewSectorMembers(
+    user_id: UUID,
+    church_id: UUID,
+    sector_id: UUID,
+  ): Promise<void> {
+    const { data: churchMember } = await this.getUserChurch.execute({ church_id, user_id });
+
+    if (
+      churchMember?.role === ChurchRoleEnum.ADMIN ||
+      churchMember?.role === ChurchRoleEnum.ROOT
+    ) {
+      return;
+    }
+
+    const { data: sectorMember } = await this.getUserSector.execute({ user_id, sector_id });
+
+    if (sectorMember) {
+      return;
+    }
+
+    throw new BadRequestException('Member is not part of this sector');
   }
 
   @Post('')
@@ -126,7 +155,7 @@ export class SectorMembersController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, SectorGuard)
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Listar membros cadastrados no setor' })
   @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
   @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
@@ -152,8 +181,10 @@ export class SectorMembersController {
   async getMembers(
     @Param('church_id') church_id: UUID,
     @Param('sector_id') sector_id: UUID,
+    @ReqUserDecorator() user: { id: UUID },
   ): Promise<ResponseSectorMembersDTO> {
     await this.ensureSectorBelongsToChurch(church_id, sector_id);
+    await this.ensureCanViewSectorMembers(user.id, church_id, sector_id);
 
     const { data: sector } = await this.getSector.execute({ search_by: 'id', search_data: sector_id });
     if (!sector) {
@@ -165,6 +196,65 @@ export class SectorMembersController {
     return plainToClass(ResponseSectorMembersDTO, {
       sector,
       members: members?.members ?? [],
+    });
+  }
+
+  @Get(':member_id/tasks')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Listar tarefas pre-definidas de um membro no setor' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
+  @ApiParam({ name: 'member_id', description: 'Identificador do membro', type: String })
+  async getMemberTasks(
+    @Param('church_id') church_id: UUID,
+    @Param('sector_id') sector_id: UUID,
+    @Param('member_id') member_id: UUID,
+    @ReqUserDecorator() user: { id: UUID },
+  ): Promise<UserTasksResponse> {
+    await this.ensureSectorBelongsToChurch(church_id, sector_id);
+    await this.ensureCanViewSectorMembers(user.id, church_id, sector_id);
+
+    const { data: relation } = await this.getUserSector.execute({ user_id: member_id, sector_id });
+    if (!relation) {
+      throw new BadRequestException('Member is not part of this sector');
+    }
+
+    const { data } = await this.listUserTasks.execute({ user_id: member_id, sector_id });
+
+    return plainToClass(UserTasksResponse, { tasks: data }, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Put(':member_id/tasks')
+  @UseGuards(AuthGuard, SectorGuard)
+  @ApiOperation({ summary: 'Definir tarefas pre-definidas de um membro no setor' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
+  @ApiParam({ name: 'member_id', description: 'Identificador do membro', type: String })
+  @ApiBody({ type: UpdateUserTasksBody })
+  async updateMemberTasks(
+    @Param('church_id') church_id: UUID,
+    @Param('sector_id') sector_id: UUID,
+    @Param('member_id') member_id: UUID,
+    @Body() body: UpdateUserTasksBody,
+  ): Promise<UserTasksResponse> {
+    await this.ensureSectorBelongsToChurch(church_id, sector_id);
+    await this.ensureValidChurchMember(church_id, member_id);
+
+    const { data: relation } = await this.getUserSector.execute({ user_id: member_id, sector_id });
+    if (!relation) {
+      throw new BadRequestException('Member is not part of this sector');
+    }
+
+    const { data } = await this.setUserTasks.execute({
+      user_id: member_id,
+      task_ids: body.task_ids,
+      sector_id,
+    });
+
+    return plainToClass(UserTasksResponse, { tasks: data }, {
+      excludeExtraneousValues: true,
     });
   }
 

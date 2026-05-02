@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique } from 'typeorm';
 import { BaseEntity } from './base';
 import { EntityEnum } from '../../enums';
 import { Sector } from './sectors.entity';
@@ -8,6 +8,9 @@ import { ScaleSong } from './scale-songs.entity';
 @Entity(EntityEnum.SCALE)
 @Unique(['sector_id', 'date'])
 export class Scale extends BaseEntity {
+  @Column({ default: 'Escala' })
+  title!: string;
+
   @Column({ type: 'timestamp' })
   date!: Date;
 
@@ -15,6 +18,7 @@ export class Scale extends BaseEntity {
   sector_id!: string;
 
   @ManyToOne(() => Sector, (sector) => sector.scales)
+  @JoinColumn({ name: 'sector_id' })
   sector!: Sector;
 
   @OneToMany(() => Participant, (participant) => participant.scale)

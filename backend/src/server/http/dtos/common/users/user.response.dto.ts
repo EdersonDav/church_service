@@ -23,6 +23,10 @@ export class ResponseUserDTO {
     @Expose()
     is_verified!: boolean
 
+    @ApiProperty({ description: 'Role for contextual membership responses', required: false })
+    @Expose()
+    role?: string;
+
     @ApiProperty({ description: 'User Created At' })
     @Expose()
     created_at?: Date;

@@ -76,7 +76,10 @@ export class UserSectorService implements UserSectorRepository {
 
     return {
       sector: members[0]?.sector,
-      members: members.map(member => member.user)
+      members: members.map(member => ({
+        ...member.user,
+        role: member.role,
+      }))
     };
   }
 }
