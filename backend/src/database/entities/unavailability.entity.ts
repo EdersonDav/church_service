@@ -9,6 +9,9 @@ export class Unavailability extends BaseEntity {
   @Column({ type: 'timestamp' })
   date!: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  end_date?: Date | null;
+
   @Column({ type: 'uuid' })
   user_id!: string;
 

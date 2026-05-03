@@ -88,12 +88,22 @@ export type ScaleParticipant = {
   task_name?: string;
 };
 
+export type ScaleStatus = 'DRAFT' | 'PUBLISHED';
+
 export type SectorScale = {
   id: string;
   title: string;
+  description?: string;
+  status: ScaleStatus;
   date: string;
   sector_id: string;
   participants: ScaleParticipant[];
+};
+
+export type Unavailability = {
+  id: string;
+  date: string;
+  end_date?: string;
 };
 
 type ListChurchesResponse = {
@@ -128,6 +138,17 @@ type ListScalesResponse = {
 
 type GetScaleResponse = {
   scale: SectorScale;
+};
+
+type ListUnavailabilityResponse = {
+  items: Unavailability[];
+};
+
+type ListSectorMembersUnavailabilityResponse = {
+  members: {
+    user_id: string;
+    items: Unavailability[];
+  }[];
 };
 
 type ListJoinRequestsResponse = {
@@ -319,6 +340,28 @@ export async function removeSectorMember(churchId: string, sectorId: string, mem
   return response.data;
 }
 
+export async function leaveSector(churchId: string, sectorId: string) {
+  const response = await apiRequest<{ message: string }>(
+    `/churches/${churchId}/sectors/${sectorId}/members/me`,
+    {
+      method: 'DELETE',
+    },
+  );
+
+  return response.data;
+}
+
+export async function listSectorMembersUnavailability(churchId: string, sectorId: string) {
+  const response = await apiRequest<ListSectorMembersUnavailabilityResponse>(
+    `/churches/${churchId}/sectors/${sectorId}/members/unavailability`,
+    {
+      method: 'GET',
+    },
+  );
+
+  return response.data.members;
+}
+
 export async function listSectorMemberTasks(churchId: string, sectorId: string, memberId: string) {
   const response = await apiRequest<ListTasksResponse>(
     `/churches/${churchId}/sectors/${sectorId}/members/${memberId}/tasks`,
@@ -420,7 +463,7 @@ export async function getSectorScale(churchId: string, sectorId: string, scaleId
 export async function createSectorScale(
   churchId: string,
   sectorId: string,
-  payload: { title: string; date: string },
+  payload: { title: string; description?: string; status?: ScaleStatus; date: string },
 ) {
   const response = await apiRequest<SectorScale>(
     `/churches/${churchId}/sectors/${sectorId}/scales`,
@@ -437,7 +480,7 @@ export async function updateSectorScale(
   churchId: string,
   sectorId: string,
   scaleId: string,
-  payload: { title: string; date: string },
+  payload: { title?: string; description?: string; status?: ScaleStatus; date?: string },
 ) {
   const response = await apiRequest<SectorScale>(
     `/churches/${churchId}/sectors/${sectorId}/scales/${scaleId}`,
@@ -475,6 +518,34 @@ export async function updateSectorScaleParticipants(
 export async function deleteSectorScale(churchId: string, sectorId: string, scaleId: string) {
   const response = await apiRequest<{ message: string }>(
     `/churches/${churchId}/sectors/${sectorId}/scales/${scaleId}`,
+    {
+      method: 'DELETE',
+    },
+  );
+
+  return response.data;
+}
+
+export async function listUserUnavailability(userId: string) {
+  const response = await apiRequest<ListUnavailabilityResponse>(`/users/${userId}/unavailability`, {
+    method: 'GET',
+  });
+
+  return response.data.items;
+}
+
+export async function createUserUnavailability(userId: string, date: string, endDate?: string) {
+  const response = await apiRequest<Unavailability>(`/users/${userId}/unavailability`, {
+    method: 'POST',
+    body: { date, end_date: endDate },
+  });
+
+  return response.data;
+}
+
+export async function deleteUserUnavailability(userId: string, unavailabilityId: string) {
+  const response = await apiRequest<{ message: string }>(
+    `/users/${userId}/unavailability/${unavailabilityId}`,
     {
       method: 'DELETE',
     },

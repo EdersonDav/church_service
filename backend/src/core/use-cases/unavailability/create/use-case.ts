@@ -13,8 +13,14 @@ export class CreateUnavailability {
         private readonly participantRepository: ParticipantRepository,
     ) { }
 
-    async execute({ user_id, date }: Input): Promise<Output> {
-        const scheduled = await this.participantRepository.findByUserAndDate(user_id, date);
+    async execute({ user_id, date, end_date }: Input): Promise<Output> {
+        const endDate = end_date ?? date;
+
+        if (endDate.getTime() < date.getTime()) {
+            throw new BadRequestException('End date must be after start date');
+        }
+
+        const scheduled = await this.participantRepository.findByUserAndRange(user_id, date, endDate);
 
         if (scheduled.length) {
             const sectorName = scheduled[0]?.scale?.sector?.name;
@@ -29,7 +35,7 @@ export class CreateUnavailability {
             throw new BadRequestException('User already unavailable for this date');
         }
 
-        const data = await this.unavailabilityRepository.save({ user_id, date });
+        const data = await this.unavailabilityRepository.save({ user_id, date, end_date: endDate });
         return { data };
     }
 }

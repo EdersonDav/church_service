@@ -34,12 +34,13 @@ import {
 } from '../../../dtos';
 import { AuthGuard, ChurchRoleGuard, SectorGuard } from '../../../../../core/guards';
 import { UUID } from 'crypto';
-import { ChurchRoleEnum, SectorRoleEnum } from '../../../../../enums';
+import { SectorRoleEnum } from '../../../../../enums';
 import { GetUserChurch } from '../../../../../core/use-cases/user-church';
 import { GetSector } from '../../../../../core/use-cases/sectors/get';
 import { ReqUserDecorator } from '../../../../../common';
 import { ListUserTasks, SetUserTasks } from '../../../../../core/use-cases/user-task';
 import { UpdateUserTasksBody, UserTasksResponse } from '../../../dtos/user/tasks';
+import { ListUserUnavailability } from '../../../../../core/use-cases/unavailability';
 
 @ApiTags('Membros do Setor')
 @ApiBearerAuth()
@@ -56,6 +57,7 @@ export class SectorMembersController {
     private readonly getSector: GetSector,
     private readonly listUserTasks: ListUserTasks,
     private readonly setUserTasks: SetUserTasks,
+    private readonly listUserUnavailability: ListUserUnavailability,
   ) { }
 
   private async ensureSectorBelongsToChurch(church_id: UUID, sector_id: UUID): Promise<void> {
@@ -96,20 +98,11 @@ export class SectorMembersController {
   ): Promise<void> {
     const { data: churchMember } = await this.getUserChurch.execute({ church_id, user_id });
 
-    if (
-      churchMember?.role === ChurchRoleEnum.ADMIN ||
-      churchMember?.role === ChurchRoleEnum.ROOT
-    ) {
+    if (churchMember) {
       return;
     }
 
-    const { data: sectorMember } = await this.getUserSector.execute({ user_id, sector_id });
-
-    if (sectorMember) {
-      return;
-    }
-
-    throw new BadRequestException('Member is not part of this sector');
+    throw new BadRequestException('Member is not part of this church');
   }
 
   @Post('')
@@ -226,6 +219,35 @@ export class SectorMembersController {
     });
   }
 
+  @Get('unavailability')
+  @UseGuards(AuthGuard, SectorGuard)
+  @ApiOperation({ summary: 'Listar indisponibilidades dos membros do setor' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
+  async getMembersUnavailability(
+    @Param('church_id') church_id: UUID,
+    @Param('sector_id') sector_id: UUID,
+  ): Promise<{ members: Array<{ user_id: string; items: Array<{ id: string; date: Date; end_date?: Date | null }> }> }> {
+    await this.ensureSectorBelongsToChurch(church_id, sector_id);
+
+    const { data: members } = await this.getUserSectorMembers.execute({ sector_id });
+    const sectorMembers = members?.members ?? [];
+
+    const entries = await Promise.all(
+      sectorMembers.map(async (member: any) => {
+        const userId = member.id;
+        const { data } = await this.listUserUnavailability.execute({ user_id: userId });
+
+        return {
+          user_id: userId,
+          items: data,
+        };
+      }),
+    );
+
+    return { members: entries };
+  }
+
   @Put(':member_id/tasks')
   @UseGuards(AuthGuard, SectorGuard)
   @ApiOperation({ summary: 'Definir tarefas pre-definidas de um membro no setor' })
@@ -300,6 +322,41 @@ export class SectorMembersController {
     });
 
     return { message: 'Member role updated successfully' };
+  }
+
+  @Delete('me')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Sair de um setor' })
+  @ApiParam({ name: 'church_id', description: 'Identificador da igreja', type: String })
+  @ApiParam({ name: 'sector_id', description: 'Identificador do setor', type: String })
+  async leaveSector(
+    @Param('church_id') church_id: UUID,
+    @Param('sector_id') sector_id: UUID,
+    @ReqUserDecorator() user: { id: UUID },
+  ): Promise<{ message: string }> {
+    await this.ensureSectorBelongsToChurch(church_id, sector_id);
+
+    const { data: churchMember } = await this.getUserChurch.execute({
+      church_id,
+      user_id: user.id,
+    });
+
+    if (!churchMember) {
+      throw new BadRequestException('Member is not part of this church');
+    }
+
+    const { data: relation } = await this.getUserSector.execute({
+      user_id: user.id,
+      sector_id,
+    });
+
+    if (!relation) {
+      throw new BadRequestException('Member is not part of this sector');
+    }
+
+    await this.deleteUserSector.execute({ user_id: user.id, sector_id });
+
+    return { message: 'Member left sector successfully' };
   }
 
   @Delete(':member_id')

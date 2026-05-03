@@ -125,6 +125,30 @@ export default function ScaleDetailsScreen() {
               <Text className="mt-3 text-sm font-semibold capitalize text-accent">
                 {formatScaleDate(scale.date)}
               </Text>
+              <View
+                className={`mt-4 self-start rounded-full px-3 py-2 ${
+                  scale.status === 'PUBLISHED' ? 'bg-success/10' : 'bg-primary/10'
+                }`}>
+                <Text
+                  className={`text-xs font-extrabold ${
+                    scale.status === 'PUBLISHED' ? 'text-success' : 'text-accent'
+                  }`}>
+                  {scale.status === 'PUBLISHED' ? 'Publicado' : 'Em analise'}
+                </Text>
+              </View>
+              {scale.description?.trim() ? (
+                <View className="mt-5 rounded-2xl border border-surfaceAlt bg-background px-4 py-4">
+                  <View className="mb-2 flex-row items-center">
+                    <Ionicons name="document-text-outline" size={16} color="#38BDF8" />
+                    <Text className="ml-2 text-sm font-bold text-textBase">
+                      Anotacoes da escala
+                    </Text>
+                  </View>
+                  <Text className="text-sm leading-6 text-textMuted">
+                    {scale.description.trim()}
+                  </Text>
+                </View>
+              ) : null}
               <View className="mt-5 flex-row items-center rounded-full bg-background px-4 py-2 self-start">
                 <Ionicons name="people-outline" size={15} color="#38BDF8" />
                 <Text className="ml-2 text-xs font-bold text-textBase">

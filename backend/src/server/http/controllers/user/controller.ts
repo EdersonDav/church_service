@@ -328,14 +328,20 @@ export class UserController {
     }
 
     const date = new Date(body.date);
+    const endDate = body.end_date ? new Date(body.end_date) : undefined;
 
     if (Number.isNaN(date.getTime())) {
       throw new BadRequestException('Invalid date');
     }
 
+    if (endDate && Number.isNaN(endDate.getTime())) {
+      throw new BadRequestException('Invalid end date');
+    }
+
     const { data } = await this.createUnavailability.execute({
       user_id: id,
       date,
+      end_date: endDate,
     });
 
     return plainToClass(UnavailabilityDto, data, {

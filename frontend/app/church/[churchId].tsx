@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { ResourceCard } from '@/components/resource-card';
 import { ApiError } from '@/lib/api';
 import {
   ChurchMember,
@@ -62,8 +63,6 @@ function getMemberInitials(name: string) {
     .map((part) => part[0]?.toUpperCase())
     .join('');
 }
-
-const avatarColors = ['#6366F1', '#22C55E', '#F97316', '#EC4899', '#38BDF8'];
 
 export default function ChurchDetailsScreen() {
   const router = useRouter();
@@ -224,13 +223,6 @@ export default function ChurchDetailsScreen() {
   function openCreateSector() {
     setSectorBeingEdited(null);
     setSectorName('');
-    setSectorErrorMessage('');
-    setIsSectorFormOpen(true);
-  }
-
-  function openEditSector(sector: Sector) {
-    setSectorBeingEdited(sector);
-    setSectorName(sector.name);
     setSectorErrorMessage('');
     setIsSectorFormOpen(true);
   }
@@ -610,101 +602,49 @@ export default function ChurchDetailsScreen() {
                   const members = sectorMembersBySector[sector.id] ?? [];
                   const visibleMembers = members.slice(0, 4);
                   const hiddenMembersCount = Math.max(members.length - visibleMembers.length, 0);
-                  const isCurrentUserSectorMember = currentUserId
-                    ? members.some((member) => member.id === currentUserId)
-                    : false;
-                  const canOpenSectorMembers = isAdmin || isCurrentUserSectorMember;
+                  const canViewSectorMembers = Boolean(membership);
+                  const canOpenSectorPage = Boolean(membership);
 
                   return (
-                    <View
+                    <ResourceCard
                       key={sector.id}
-                      className="mb-3 rounded-[24px] border border-surfaceAlt bg-surface px-5 py-5">
-                      <View className="flex-row items-start justify-between">
-                        <View className="mr-4 flex-1">
-                          <Text className="text-lg font-bold text-textBase">{sector.name}</Text>
-
-                          <View className="mt-4 flex-row items-center">
-                            <View className="mr-3 flex-row items-center rounded-full bg-background px-3 py-2">
-                              <Ionicons name="people-outline" size={15} color="#38BDF8" />
-                              <Text className="ml-2 text-xs font-bold text-textBase">
-                                {members.length}
-                              </Text>
-                            </View>
-
-                            <View className="h-10 flex-row items-center">
-                              {visibleMembers.map((member, index) => (
-                                <View
-                                  key={member.id}
-                                  className="h-10 w-10 items-center justify-center rounded-full border-2 border-surface"
-                                  style={{
-                                    backgroundColor: avatarColors[index % avatarColors.length],
-                                    marginLeft: index === 0 ? 0 : -12,
-                                  }}>
-                                  <Text className="text-sm font-extrabold text-white">
-                                    {getMemberInitials(member.name)}
-                                  </Text>
-                                </View>
-                              ))}
-
-                              {hiddenMembersCount > 0 ? (
-                                <View
-                                  className="h-10 w-10 items-center justify-center rounded-full border-2 border-surface bg-background"
-                                  style={{ marginLeft: visibleMembers.length > 0 ? -12 : 0 }}>
-                                  <Text className="text-sm font-extrabold text-textBase">
-                                    +{hiddenMembersCount}
-                                  </Text>
-                                </View>
-                              ) : null}
-                            </View>
-                          </View>
-                        </View>
-
-                        {canOpenSectorMembers || isAdmin ? (
-                          <View className="flex-row gap-2">
-                            {canOpenSectorMembers ? (
-                              <>
-                                <TouchableOpacity
-                                  className="h-10 w-10 items-center justify-center rounded-full bg-background"
-                                  onPress={() => openManageSectorMembers(sector)}>
-                                  <Ionicons name="people-outline" size={18} color="#38BDF8" />
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  className="h-10 w-10 items-center justify-center rounded-full bg-background"
-                                  onPress={() =>
-                                    router.push({
-                                      pathname: '/sector/[sectorId]',
-                                      params: {
-                                        sectorId: sector.id,
-                                        churchId: String(churchId),
-                                        sectorName: sector.name,
-                                      },
-                                    })
-                                  }>
-                                  <Ionicons name="chevron-forward" size={18} color="#38BDF8" />
-                                </TouchableOpacity>
-                              </>
+                      title={sector.name}
+                      count={members.length}
+                      avatars={visibleMembers.map((member) => ({
+                        id: member.id,
+                        initials: getMemberInitials(member.name),
+                      }))}
+                      hiddenCount={hiddenMembersCount}
+                      actions={
+                        canViewSectorMembers || canOpenSectorPage ? (
+                          <>
+                            {canViewSectorMembers ? (
+                              <TouchableOpacity
+                                className="h-10 w-10 items-center justify-center rounded-full bg-background"
+                                onPress={() => openManageSectorMembers(sector)}>
+                                <Ionicons name="people-outline" size={18} color="#38BDF8" />
+                              </TouchableOpacity>
                             ) : null}
-                            {isAdmin ? (
-                              <>
-                                <TouchableOpacity
-                                  className="h-10 w-10 items-center justify-center rounded-full bg-background"
-                                  onPress={() => openEditSector(sector)}>
-                                  <Ionicons name="create-outline" size={18} color="#94A3B8" />
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  className="h-10 w-10 items-center justify-center rounded-full bg-danger/10"
-                                  onPress={() => {
-                                    setSectorBeingDeleted(sector);
-                                    setSectorErrorMessage('');
-                                  }}>
-                                  <Ionicons name="trash-outline" size={18} color="#F87171" />
-                                </TouchableOpacity>
-                              </>
+                            {canOpenSectorPage ? (
+                              <TouchableOpacity
+                                className="h-10 w-10 items-center justify-center rounded-full bg-background"
+                                onPress={() =>
+                                  router.push({
+                                    pathname: '/sector/[sectorId]',
+                                    params: {
+                                      sectorId: sector.id,
+                                      churchId: String(churchId),
+                                      sectorName: sector.name,
+                                    },
+                                  })
+                                }>
+                                <Ionicons name="chevron-forward" size={18} color="#38BDF8" />
+                              </TouchableOpacity>
                             ) : null}
-                          </View>
-                        ) : null}
-                      </View>
-                    </View>
+                          </>
+                        ) : null
+                      }
+                    />
                   );
                 })
               )}

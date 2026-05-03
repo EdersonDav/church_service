@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique } from 'typeorm';
 import { BaseEntity } from './base';
-import { EntityEnum } from '../../enums';
+import { EntityEnum, ScaleStatusEnum } from '../../enums';
 import { Sector } from './sectors.entity';
 import { Participant } from './participants.entity';
 import { ScaleSong } from './scale-songs.entity';
@@ -10,6 +10,12 @@ import { ScaleSong } from './scale-songs.entity';
 export class Scale extends BaseEntity {
   @Column({ default: 'Escala' })
   title!: string;
+
+  @Column({ type: 'text', default: '' })
+  description!: string;
+
+  @Column({ type: 'varchar', default: ScaleStatusEnum.DRAFT })
+  status!: ScaleStatusEnum;
 
   @Column({ type: 'timestamp' })
   date!: Date;

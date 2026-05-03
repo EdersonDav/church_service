@@ -35,6 +35,7 @@ import { GetUserSector } from '../../../../core/use-cases/user-sector';
 import { GetUserChurch } from '../../../../core/use-cases/user-church';
 import { AuthGuard, SectorGuard } from '../../../../core/guards';
 import { ReqUserDecorator } from '../../../../common';
+import { ChurchRoleEnum, ScaleStatusEnum, SectorRoleEnum } from '../../../../enums';
 import {
   CreateScaleBody,
   CreateScaleResponse,
@@ -73,7 +74,7 @@ export class ScaleController {
     return data;
   }
 
-  private async ensureMembership(user_id: UUID, church_id: UUID, sector_id: UUID): Promise<void> {
+  private async getScaleAccess(user_id: UUID, church_id: UUID, sector_id: UUID) {
     const [{ data: churchRelation }, { data: sectorRelation }] = await Promise.all([
       this.getUserChurch.execute({ user_id, church_id }),
       this.getUserSector.execute({ user_id, sector_id }),
@@ -82,6 +83,13 @@ export class ScaleController {
     if (!churchRelation && !sectorRelation) {
       throw new ForbiddenException('Access denied');
     }
+
+    return {
+      canManage:
+        churchRelation?.role === ChurchRoleEnum.ADMIN ||
+        churchRelation?.role === ChurchRoleEnum.ROOT ||
+        sectorRelation?.role === SectorRoleEnum.ADMIN,
+    };
   }
 
   private toScaleDto(scale: any): ScaleDto {
@@ -110,6 +118,9 @@ export class ScaleController {
         summary: 'Escala para o culto de domingo',
         value: {
           date: '2024-06-21T18:00:00.000Z',
+          title: 'Culto de domingo',
+          description: 'Musicas: Bondade de Deus em G. Midia: cronograma do culto e avisos.',
+          status: 'DRAFT',
         },
       },
     },
@@ -145,6 +156,8 @@ export class ScaleController {
     const { data } = await this.createScale.execute({
       sector_id,
       title: body.title.trim(),
+      description: body.description?.trim() ?? '',
+      status: body.status ?? ScaleStatusEnum.DRAFT,
       date,
     });
     const { data: scale } = await this.getScale.execute({ scale_id: data.id });
@@ -185,11 +198,15 @@ export class ScaleController {
     @ReqUserDecorator() user: { id: UUID },
   ): Promise<ListScalesResponse> {
     await this.ensureSector(church_id, sector_id);
-    await this.ensureMembership(user.id, church_id, sector_id);
+    const { canManage } = await this.getScaleAccess(user.id, church_id, sector_id);
 
     const { data } = await this.listScalesBySector.execute({ sector_id });
 
-    const scales = data.map((scale) => this.toScaleDto(scale));
+    const visibleScales = canManage
+      ? data
+      : data.filter((scale) => scale.status === ScaleStatusEnum.PUBLISHED);
+
+    const scales = visibleScales.map((scale) => this.toScaleDto(scale));
 
     return plainToClass(ListScalesResponse, { scales }, {
       excludeExtraneousValues: true,
@@ -229,12 +246,16 @@ export class ScaleController {
     @ReqUserDecorator() user: { id: UUID },
   ): Promise<GetScaleResponse> {
     await this.ensureSector(church_id, sector_id);
-    await this.ensureMembership(user.id, church_id, sector_id);
+    const { canManage } = await this.getScaleAccess(user.id, church_id, sector_id);
 
     const { data } = await this.getScale.execute({ scale_id });
 
     if (!data || data.sector_id !== sector_id) {
       throw new BadRequestException('Scale not found');
+    }
+
+    if (!canManage && data.status !== ScaleStatusEnum.PUBLISHED) {
+      throw new ForbiddenException('Scale is not published');
     }
 
     return plainToClass(GetScaleResponse, { scale: this.toScaleDto(data) }, {
@@ -256,6 +277,9 @@ export class ScaleController {
         summary: 'Alteração de data',
         value: {
           date: '2024-06-28T18:00:00.000Z',
+          title: 'Culto de sexta',
+          description: 'Observacoes atualizadas da escala.',
+          status: 'PUBLISHED',
         },
       },
     },
@@ -296,6 +320,8 @@ export class ScaleController {
       scale_id,
       sector_id,
       title: body.title?.trim(),
+      description: body.description === undefined ? undefined : body.description.trim(),
+      status: body.status,
       date,
     });
     const { data: fullScale } = await this.getScale.execute({ scale_id });

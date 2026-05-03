@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,28 +14,53 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { ResourceCard } from '@/components/resource-card';
+import { getAvatarColor } from '@/constants/avatar-colors';
 import { ApiError } from '@/lib/api';
 import {
   ChurchMember,
   ScaleParticipant,
+  ScaleStatus,
   SectorScale,
   SectorTask,
+  addSectorMember,
   createSectorScale,
   createSectorTask,
+  deleteSector,
   deleteSectorScale,
   deleteSectorTask,
   getChurchMembership,
+  leaveSector,
+  listChurchMembers,
+  listSectorMembersUnavailability,
   listSectorMembers,
   listSectorMemberTasks,
   listSectorScales,
   listSectorTasks,
+  removeSectorMember,
+  updateSector,
   updateSectorMemberTasks,
+  updateSectorMemberRole,
   updateSectorScale,
   updateSectorScaleParticipants,
   updateSectorTask,
 } from '@/lib/churches';
 
 const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+const hourOptions = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'));
+const minuteOptions = ['00', '15', '30', '45'];
+const scaleStatusOptions: { value: ScaleStatus; label: string; description: string }[] = [
+  {
+    value: 'DRAFT',
+    label: 'Em analise',
+    description: 'Visivel apenas para admins do setor',
+  },
+  {
+    value: 'PUBLISHED',
+    label: 'Publicado',
+    description: 'Visivel para todos os membros',
+  },
+];
 
 function formatScaleDate(value: string) {
   const date = new Date(value);
@@ -111,16 +136,28 @@ export default function SectorDetailsScreen() {
   const [tasks, setTasks] = useState<SectorTask[]>([]);
   const [scales, setScales] = useState<SectorScale[]>([]);
   const [members, setMembers] = useState<ChurchMember[]>([]);
+  const [churchMembers, setChurchMembers] = useState<ChurchMember[]>([]);
   const [memberTasksByUser, setMemberTasksByUser] = useState<Record<string, SectorTask[]>>({});
   const [currentUserId, setCurrentUserId] = useState('');
   const [churchRole, setChurchRole] = useState('');
+  const [sectorDisplayName, setSectorDisplayName] = useState(String(sectorName || 'Setor'));
   const [selectedTab, setSelectedTab] = useState<'tasks' | 'scales'>('scales');
   const [errorMessage, setErrorMessage] = useState('');
   const [formErrorMessage, setFormErrorMessage] = useState('');
+  const [memberErrorMessage, setMemberErrorMessage] = useState('');
+  const [memberSearchTerm, setMemberSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLeavingSector, setIsLeavingSector] = useState(false);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [memberActionId, setMemberActionId] = useState('');
+
+  const [sectorFormOpen, setSectorFormOpen] = useState(false);
+  const [sectorDeleteConfirmOpen, setSectorDeleteConfirmOpen] = useState(false);
+  const [sectorLeaveConfirmOpen, setSectorLeaveConfirmOpen] = useState(false);
+  const [sectorDraftName, setSectorDraftName] = useState(String(sectorName || 'Setor'));
 
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [taskBeingEdited, setTaskBeingEdited] = useState<SectorTask | null>(null);
@@ -133,14 +170,21 @@ export default function SectorDetailsScreen() {
   const [scaleBeingEdited, setScaleBeingEdited] = useState<SectorScale | null>(null);
   const [scaleBeingDeleted, setScaleBeingDeleted] = useState<SectorScale | null>(null);
   const [scaleTitle, setScaleTitle] = useState('');
+  const [scaleDescription, setScaleDescription] = useState('');
+  const [scaleStatus, setScaleStatus] = useState<ScaleStatus>('DRAFT');
   const [scaleDate, setScaleDate] = useState('');
   const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   const [participantsFormOpen, setParticipantsFormOpen] = useState(false);
   const [scaleManagingParticipants, setScaleManagingParticipants] = useState<SectorScale | null>(null);
   const [draftParticipants, setDraftParticipants] = useState<ScaleParticipant[]>([]);
+  const [unavailableMemberIds, setUnavailableMemberIds] = useState<Set<string>>(new Set());
+  const [isLoadingParticipantAvailability, setIsLoadingParticipantAvailability] = useState(false);
+  const [hasLoadedParticipantAvailability, setHasLoadedParticipantAvailability] = useState(false);
+  const selectableMemberIdsRef = useRef<Set<string>>(new Set());
 
   const [memberTasksFormOpen, setMemberTasksFormOpen] = useState(false);
+  const [membersFormOpen, setMembersFormOpen] = useState(false);
   const [memberManagingTasks, setMemberManagingTasks] = useState<ChurchMember | null>(null);
   const [draftMemberTaskIds, setDraftMemberTaskIds] = useState<string[]>([]);
 
@@ -151,7 +195,40 @@ export default function SectorDetailsScreen() {
   const isChurchAdmin = churchRole === 'ADMIN' || churchRole === 'ROOT';
   const isSectorAdmin = currentMember?.role === 'ADMIN';
   const canManageSector = isChurchAdmin || isSectorAdmin;
-  const isBusy = isSaving || isDeleting;
+  const canLeaveSector = Boolean(currentMember) && !canManageSector;
+  const canUpdateSectorRoles = isChurchAdmin;
+  const isBusy = isSaving || isDeleting || isLeavingSector;
+  const sectorMemberIds = useMemo(() => new Set(members.map((member) => member.id)), [members]);
+  const availableChurchMembers = useMemo(() => {
+    const normalizedTerm = memberSearchTerm.trim().toLowerCase();
+
+    return churchMembers.filter((member) => {
+      if (sectorMemberIds.has(member.id)) {
+        return false;
+      }
+
+      if (!normalizedTerm) {
+        return true;
+      }
+
+      return (
+        member.name.toLowerCase().includes(normalizedTerm) ||
+        member.email.toLowerCase().includes(normalizedTerm)
+      );
+    });
+  }, [churchMembers, memberSearchTerm, sectorMemberIds]);
+  const sortedScaleMembers = useMemo(() => {
+    return [...members].sort((left, right) => {
+      const leftUnavailable = unavailableMemberIds.has(left.id);
+      const rightUnavailable = unavailableMemberIds.has(right.id);
+
+      if (leftUnavailable !== rightUnavailable) {
+        return leftUnavailable ? 1 : -1;
+      }
+
+      return left.name.localeCompare(right.name);
+    });
+  }, [members, unavailableMemberIds]);
 
   const loadSectorData = useCallback(
     async (isPullToRefresh = false) => {
@@ -204,10 +281,13 @@ export default function SectorDetailsScreen() {
   }, [loadSectorData]);
 
   function closeForms() {
-    if (isBusy) {
+    if (isBusy || isLoadingMembers || memberActionId) {
       return;
     }
 
+    setSectorFormOpen(false);
+    setSectorDeleteConfirmOpen(false);
+    setSectorLeaveConfirmOpen(false);
     setTaskFormOpen(false);
     setTaskBeingEdited(null);
     setTaskBeingDeleted(null);
@@ -217,10 +297,201 @@ export default function SectorDetailsScreen() {
     setParticipantsFormOpen(false);
     setScaleManagingParticipants(null);
     setDraftParticipants([]);
+    setUnavailableMemberIds(new Set());
+    setIsLoadingParticipantAvailability(false);
+    setHasLoadedParticipantAvailability(false);
+    selectableMemberIdsRef.current = new Set();
+    setMembersFormOpen(false);
+    setChurchMembers([]);
+    setMemberSearchTerm('');
+    setMemberErrorMessage('');
     setMemberTasksFormOpen(false);
     setMemberManagingTasks(null);
     setDraftMemberTaskIds([]);
     setFormErrorMessage('');
+  }
+
+  function openEditSector() {
+    setSectorDraftName(sectorDisplayName);
+    setFormErrorMessage('');
+    setSectorFormOpen(true);
+  }
+
+  async function handleSaveSector() {
+    if (!churchId || !sectorId) {
+      return;
+    }
+
+    const trimmedName = sectorDraftName.trim();
+
+    if (trimmedName.length < 3 || trimmedName.length > 50) {
+      setFormErrorMessage('O nome deve ter entre 3 e 50 caracteres.');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setFormErrorMessage('');
+      const savedSector = await updateSector(churchId, sectorId, { name: trimmedName });
+      setSectorDisplayName(savedSector.name);
+      setSectorFormOpen(false);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setFormErrorMessage(error.message);
+      } else {
+        setFormErrorMessage('Nao foi possivel salvar o setor agora.');
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDeleteSector() {
+    if (!churchId || !sectorId) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setFormErrorMessage('');
+      await deleteSector(churchId, sectorId);
+      router.replace({
+        pathname: '/church/[churchId]',
+        params: { churchId },
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setFormErrorMessage(error.message);
+      } else {
+        setFormErrorMessage('Nao foi possivel deletar o setor agora.');
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  async function handleLeaveSector() {
+    if (!churchId || !sectorId) {
+      return;
+    }
+
+    try {
+      setIsLeavingSector(true);
+      setFormErrorMessage('');
+      await leaveSector(churchId, sectorId);
+      router.replace({
+        pathname: '/church/[churchId]',
+        params: { churchId },
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setFormErrorMessage(error.message);
+      } else {
+        setFormErrorMessage('Nao foi possivel sair do setor agora.');
+      }
+    } finally {
+      setIsLeavingSector(false);
+    }
+  }
+
+  async function openMembersForm() {
+    if (!churchId) {
+      return;
+    }
+
+    setMembersFormOpen(true);
+    setMemberSearchTerm('');
+    setMemberErrorMessage('');
+
+    try {
+      setIsLoadingMembers(true);
+      const churchMembersResult = await listChurchMembers(churchId);
+      setChurchMembers(churchMembersResult);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setMemberErrorMessage(error.message);
+      } else {
+        setMemberErrorMessage('Nao foi possivel carregar os membros da igreja agora.');
+      }
+    } finally {
+      setIsLoadingMembers(false);
+    }
+  }
+
+  async function handleAddSectorMember(member: ChurchMember) {
+    if (!churchId || !sectorId) {
+      return;
+    }
+
+    try {
+      setMemberActionId(member.id);
+      setMemberErrorMessage('');
+      await addSectorMember(churchId, sectorId, member.id);
+      const nextMember = { ...member, role: 'MEMBER' };
+      setMembers((current) => [...current, nextMember]);
+      setMemberTasksByUser((current) => ({ ...current, [member.id]: [] }));
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setMemberErrorMessage(error.message);
+      } else {
+        setMemberErrorMessage('Nao foi possivel adicionar o membro agora.');
+      }
+    } finally {
+      setMemberActionId('');
+    }
+  }
+
+  async function handleToggleSectorAdmin(member: ChurchMember) {
+    if (!churchId || !sectorId) {
+      return;
+    }
+
+    const nextRole = member.role === 'ADMIN' ? 'MEMBER' : 'ADMIN';
+
+    try {
+      setMemberActionId(member.id);
+      setMemberErrorMessage('');
+      await updateSectorMemberRole(churchId, sectorId, member.id, nextRole);
+      setMembers((current) =>
+        current.map((currentMember) =>
+          currentMember.id === member.id ? { ...currentMember, role: nextRole } : currentMember,
+        ),
+      );
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setMemberErrorMessage(error.message);
+      } else {
+        setMemberErrorMessage('Nao foi possivel atualizar o papel do membro agora.');
+      }
+    } finally {
+      setMemberActionId('');
+    }
+  }
+
+  async function handleRemoveSectorMember(member: ChurchMember) {
+    if (!churchId || !sectorId) {
+      return;
+    }
+
+    try {
+      setMemberActionId(member.id);
+      setMemberErrorMessage('');
+      await removeSectorMember(churchId, sectorId, member.id);
+      setMembers((current) => current.filter((currentMember) => currentMember.id !== member.id));
+      setMemberTasksByUser((current) => {
+        const nextValue = { ...current };
+        delete nextValue[member.id];
+        return nextValue;
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setMemberErrorMessage(error.message);
+      } else {
+        setMemberErrorMessage('Nao foi possivel remover o membro agora.');
+      }
+    } finally {
+      setMemberActionId('');
+    }
   }
 
   function openCreateTask() {
@@ -314,6 +585,8 @@ export default function SectorDetailsScreen() {
   function openCreateScale() {
     setScaleBeingEdited(null);
     setScaleTitle('');
+    setScaleDescription('');
+    setScaleStatus('DRAFT');
     setScaleDate(toDateInputValue());
     setCalendarMonth(new Date());
     setFormErrorMessage('');
@@ -323,6 +596,8 @@ export default function SectorDetailsScreen() {
   function openEditScale(scale: SectorScale) {
     setScaleBeingEdited(scale);
     setScaleTitle(scale.title);
+    setScaleDescription(scale.description ?? '');
+    setScaleStatus(scale.status ?? 'DRAFT');
     setScaleDate(toDateInputValue(scale.date));
     setCalendarMonth(new Date(scale.date));
     setFormErrorMessage('');
@@ -344,10 +619,11 @@ export default function SectorDetailsScreen() {
     setCalendarMonth(nextDate);
   }
 
-  function updateScaleTime(value: string) {
-    const [hoursValue, minutesValue] = value.split(':');
-    const hours = Number(hoursValue);
-    const minutes = Number(minutesValue);
+  function updateScaleTime(part: 'hour' | 'minute', value: string) {
+    const currentValue = scaleDate ? toDateInputValue(scaleDate).slice(11, 16) : '19:00';
+    const [currentHours, currentMinutes] = currentValue.split(':');
+    const hours = Number(part === 'hour' ? value : currentHours);
+    const minutes = Number(part === 'minute' ? value : currentMinutes);
     const currentDate = scaleDate ? new Date(scaleDate) : new Date();
 
     if (Number.isNaN(hours) || Number.isNaN(minutes) || Number.isNaN(currentDate.getTime())) {
@@ -365,6 +641,7 @@ export default function SectorDetailsScreen() {
 
     const isoDate = fromDateInputValue(scaleDate.trim());
     const trimmedTitle = scaleTitle.trim();
+    const trimmedDescription = scaleDescription.trim();
 
     if (trimmedTitle.length < 3 || trimmedTitle.length > 80) {
       setFormErrorMessage('O titulo deve ter entre 3 e 80 caracteres.');
@@ -382,10 +659,14 @@ export default function SectorDetailsScreen() {
       const savedScale = scaleBeingEdited
         ? await updateSectorScale(churchId, sectorId, scaleBeingEdited.id, {
             title: trimmedTitle,
+            description: trimmedDescription,
+            status: scaleStatus,
             date: isoDate,
           })
         : await createSectorScale(churchId, sectorId, {
             title: trimmedTitle,
+            description: trimmedDescription,
+            status: scaleStatus,
             date: isoDate,
           });
 
@@ -439,20 +720,100 @@ export default function SectorDetailsScreen() {
       params: {
         churchId,
         sectorId,
-        sectorName: sectorName || 'Setor',
+        sectorName: sectorDisplayName,
         scaleId: scale.id,
       },
     });
   }
 
+  async function loadParticipantAvailability(scale: SectorScale) {
+    if (!churchId || !sectorId) {
+      setIsLoadingParticipantAvailability(false);
+      setHasLoadedParticipantAvailability(false);
+      selectableMemberIdsRef.current = new Set();
+      return;
+    }
+
+    const scaleDate = new Date(scale.date);
+
+    if (Number.isNaN(scaleDate.getTime())) {
+      setUnavailableMemberIds(new Set());
+      setIsLoadingParticipantAvailability(false);
+      setHasLoadedParticipantAvailability(false);
+      selectableMemberIdsRef.current = new Set();
+      return;
+    }
+
+    try {
+      setFormErrorMessage('');
+      const entries = await listSectorMembersUnavailability(churchId, sectorId);
+
+      const nextUnavailableMemberIds = new Set(
+        entries
+          .filter((entry) =>
+            entry.items.some((item) => {
+              const start = new Date(item.date);
+              const end = new Date(item.end_date ?? item.date);
+
+              if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+                return false;
+              }
+
+              return (
+                start.getTime() <= scaleDate.getTime() &&
+                end.getTime() >= scaleDate.getTime()
+              );
+            }),
+          )
+          .map((entry) => entry.user_id),
+      );
+
+      setUnavailableMemberIds(nextUnavailableMemberIds);
+      selectableMemberIdsRef.current = new Set(
+        members
+          .filter((member) => !nextUnavailableMemberIds.has(member.id))
+          .map((member) => member.id),
+      );
+      setHasLoadedParticipantAvailability(true);
+      setDraftParticipants((current) =>
+        current.filter((participant) => !nextUnavailableMemberIds.has(participant.user_id)),
+      );
+    } catch (error) {
+      setUnavailableMemberIds(new Set());
+      setHasLoadedParticipantAvailability(false);
+      selectableMemberIdsRef.current = new Set();
+      if (error instanceof ApiError) {
+        setFormErrorMessage(error.message);
+      } else {
+        setFormErrorMessage('Nao foi possivel verificar as indisponibilidades dos membros.');
+      }
+    } finally {
+      setIsLoadingParticipantAvailability(false);
+    }
+  }
+
   function openParticipantsForm(scale: SectorScale) {
     setScaleManagingParticipants(scale);
     setDraftParticipants(scale.participants);
+    setUnavailableMemberIds(new Set());
+    setIsLoadingParticipantAvailability(true);
+    setHasLoadedParticipantAvailability(false);
+    selectableMemberIdsRef.current = new Set();
     setFormErrorMessage('');
     setParticipantsFormOpen(true);
+    void loadParticipantAvailability(scale);
   }
 
   function toggleDraftMember(member: ChurchMember) {
+    if (
+      isLoadingParticipantAvailability ||
+      !hasLoadedParticipantAvailability ||
+      unavailableMemberIds.has(member.id) ||
+      !selectableMemberIdsRef.current.has(member.id)
+    ) {
+      return;
+    }
+
     setDraftParticipants((current) => {
       const alreadySelected = current.some((participant) => participant.user_id === member.id);
 
@@ -587,14 +948,30 @@ export default function SectorDetailsScreen() {
             <Text className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">
               Setor
             </Text>
-            <View className="rounded-full bg-background px-4 py-2">
-              <Text className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
-                {canManageSector ? 'Admin do setor' : 'Membro'}
-              </Text>
+            <View className="flex-row items-center gap-2">
+              <View className="rounded-full bg-background px-4 py-2">
+                <Text className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
+                  {canManageSector ? 'Admin do setor' : 'Membro'}
+                </Text>
+              </View>
+              {canManageSector ? (
+                <>
+                  <TouchableOpacity
+                    className="h-10 w-10 items-center justify-center rounded-full bg-background"
+                    onPress={openMembersForm}>
+                    <Ionicons name="person-add-outline" size={18} color="#38BDF8" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="h-10 w-10 items-center justify-center rounded-full bg-background"
+                    onPress={openEditSector}>
+                    <Ionicons name="create-outline" size={18} color="#94A3B8" />
+                  </TouchableOpacity>
+                </>
+              ) : null}
             </View>
           </View>
           <Text className="mt-3 text-3xl font-extrabold text-textBase">
-            {sectorName || 'Setor'}
+            {sectorDisplayName}
           </Text>
           <View className="mt-5 flex-row gap-3">
             <View className="flex-row items-center rounded-full bg-background px-4 py-2">
@@ -639,12 +1016,20 @@ export default function SectorDetailsScreen() {
           <View className="mb-5">
             <View className="mb-3 flex-row items-center justify-between">
               <Text className="text-base font-bold text-textBase">Membros</Text>
-              <Text className="text-xs font-semibold text-textMuted">
-                {members.length} no setor
-              </Text>
+              {canManageSector ? (
+                <TouchableOpacity
+                  className="h-9 w-9 items-center justify-center rounded-full bg-surfaceAlt"
+                  onPress={openMembersForm}>
+                  <Ionicons name="person-add-outline" size={17} color="#FFFFFF" />
+                </TouchableOpacity>
+              ) : (
+                <Text className="text-xs font-semibold text-textMuted">
+                  {members.length} no setor
+                </Text>
+              )}
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {members.map((member) => {
+              {members.map((member, index) => {
                 const memberTasks = memberTasksByUser[member.id] ?? [];
 
                 return (
@@ -654,7 +1039,9 @@ export default function SectorDetailsScreen() {
                     onPress={() => (canManageSector ? openMemberTasksForm(member) : undefined)}
                     disabled={!canManageSector}>
                     <View className="flex-row items-center">
-                      <View className="h-9 w-9 items-center justify-center rounded-full bg-primary">
+                      <View
+                        className="h-9 w-9 items-center justify-center rounded-full"
+                        style={{ backgroundColor: getAvatarColor(member.id, index) }}>
                         <Text className="font-bold uppercase text-white">
                           {member.name?.charAt(0) || '?'}
                         </Text>
@@ -775,88 +1162,343 @@ export default function SectorDetailsScreen() {
                 const remainingParticipants = Math.max(scale.participants.length - visibleParticipants.length, 0);
 
                 return (
-                  <Pressable
+                  <ResourceCard
                     key={scale.id}
-                    className="mb-3 rounded-[22px] border border-surfaceAlt bg-surface px-4 py-4"
-                    onPress={() => openScaleDetails(scale)}>
-                    <View className="flex-row items-center justify-between">
-                      <View className="mr-3 flex-1">
-                        <Text className="text-base font-bold text-textBase" numberOfLines={1}>
-                          {scale.title}
-                        </Text>
-                        <Text className="mt-1 text-sm font-semibold text-accent" numberOfLines={1}>
-                          {formatScaleDate(scale.date)}
-                        </Text>
-                        <Text className="mt-1 text-sm text-textMuted" numberOfLines={1}>
-                          {scale.participants.length} participante(s)
-                        </Text>
-                      </View>
-
-                      <View className="items-end">
-                        <View className="h-10 min-w-[86px] flex-row items-center justify-end">
-                          {visibleParticipants.length === 0 ? (
-                            <View className="h-9 w-9 items-center justify-center rounded-full bg-background">
-                              <Ionicons name="people-outline" size={17} color="#64748B" />
-                            </View>
-                          ) : (
-                            visibleParticipants.map((participant, index) => (
-                              <View
-                                key={participant.user_id}
-                                className="-ml-2 h-9 w-9 items-center justify-center rounded-full border-2 border-surface bg-primary"
-                                style={{ zIndex: visibleParticipants.length - index }}>
-                                <Text className="text-xs font-extrabold text-white">
-                                  {getInitials(participant.user_name)}
-                                </Text>
-                              </View>
-                            ))
-                          )}
-                          {remainingParticipants > 0 ? (
-                            <View className="-ml-2 h-9 w-9 items-center justify-center rounded-full border-2 border-surface bg-background">
-                              <Text className="text-xs font-extrabold text-textBase">
-                                +{remainingParticipants}
-                              </Text>
-                            </View>
-                          ) : null}
-                        </View>
-
-                        {canManageSector ? (
-                          <View className="mt-3 flex-row gap-2">
-                            <Pressable
-                              className="h-8 w-8 items-center justify-center rounded-full bg-background"
-                              onPress={(event) => {
-                                event.stopPropagation();
-                                openParticipantsForm(scale);
-                              }}>
-                              <Ionicons name="people-outline" size={16} color="#38BDF8" />
-                            </Pressable>
-                            <Pressable
-                              className="h-8 w-8 items-center justify-center rounded-full bg-background"
-                              onPress={(event) => {
-                                event.stopPropagation();
-                                openEditScale(scale);
-                              }}>
-                              <Ionicons name="create-outline" size={16} color="#94A3B8" />
-                            </Pressable>
-                            <Pressable
-                              className="h-8 w-8 items-center justify-center rounded-full bg-danger/10"
-                              onPress={(event) => {
-                                event.stopPropagation();
-                                setScaleBeingDeleted(scale);
-                                setFormErrorMessage('');
-                              }}>
-                              <Ionicons name="trash-outline" size={16} color="#F87171" />
-                            </Pressable>
-                          </View>
-                        ) : null}
-                      </View>
-                    </View>
-                  </Pressable>
+                    title={scale.title}
+                    subtitle={formatScaleDate(scale.date)}
+                    description={scale.description?.trim()}
+                    badge={
+                      canManageSector
+                        ? {
+                            label: scale.status === 'PUBLISHED' ? 'Publicado' : 'Em analise',
+                            variant: scale.status === 'PUBLISHED' ? 'success' : 'default',
+                          }
+                        : undefined
+                    }
+                    count={scale.participants.length}
+                    avatars={visibleParticipants.map((participant) => ({
+                      id: participant.user_id,
+                      initials: getInitials(participant.user_name),
+                    }))}
+                    hiddenCount={remainingParticipants}
+                    onPress={() => openScaleDetails(scale)}
+                    actions={
+                      canManageSector ? (
+                        <>
+                          <Pressable
+                            className="h-10 w-10 items-center justify-center rounded-full bg-background"
+                            onPress={(event) => {
+                              event.stopPropagation();
+                              openParticipantsForm(scale);
+                            }}>
+                            <Ionicons name="people-outline" size={18} color="#38BDF8" />
+                          </Pressable>
+                          <Pressable
+                            className="h-10 w-10 items-center justify-center rounded-full bg-background"
+                            onPress={(event) => {
+                              event.stopPropagation();
+                              openEditScale(scale);
+                            }}>
+                            <Ionicons name="create-outline" size={18} color="#94A3B8" />
+                          </Pressable>
+                          <Pressable
+                            className="h-10 w-10 items-center justify-center rounded-full bg-danger/10"
+                            onPress={(event) => {
+                              event.stopPropagation();
+                              setScaleBeingDeleted(scale);
+                              setFormErrorMessage('');
+                            }}>
+                            <Ionicons name="trash-outline" size={18} color="#F87171" />
+                          </Pressable>
+                        </>
+                      ) : null
+                    }
+                  />
                 );
               })
             )}
           </View>
         ) : null}
+
+        {!isLoading && canManageSector ? (
+          <View className="mt-8">
+            {sectorDeleteConfirmOpen ? (
+              <View className="rounded-[24px] border border-danger/30 bg-danger/10 px-5 py-5">
+                <Text className="text-base font-bold text-textBase">Deletar setor?</Text>
+                <Text className="mt-2 text-sm leading-6 text-textMuted">
+                  Esta acao remove o setor {sectorDisplayName} permanentemente.
+                </Text>
+                {!!formErrorMessage && (
+                  <View className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
+                    <Text className="text-sm text-danger">{formErrorMessage}</Text>
+                  </View>
+                )}
+                <View className="mt-5 flex-row gap-3">
+                  <TouchableOpacity
+                    className="flex-1 items-center rounded-2xl bg-surface py-4"
+                    onPress={() => setSectorDeleteConfirmOpen(false)}
+                    disabled={isDeleting}>
+                    <Text className="font-bold text-textBase">Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className={`flex-1 items-center rounded-2xl py-4 ${
+                      isDeleting ? 'bg-surfaceAlt' : 'bg-danger'
+                    }`}
+                    onPress={handleDeleteSector}
+                    disabled={isDeleting}>
+                    <Text className="font-bold text-white">
+                      {isDeleting ? 'Deletando...' : 'Confirmar'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                className="self-start flex-row items-center py-2"
+                onPress={() => {
+                  setFormErrorMessage('');
+                  setSectorDeleteConfirmOpen(true);
+                }}>
+                <Ionicons name="trash-outline" size={17} color="#F87171" />
+                <Text className="ml-2 text-sm font-semibold text-danger">Deletar setor</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : null}
+
+        {!isLoading && canLeaveSector ? (
+          <View className="mt-8">
+            {sectorLeaveConfirmOpen ? (
+              <View className="rounded-[24px] border border-danger/30 bg-danger/10 px-5 py-5">
+                <Text className="text-base font-bold text-textBase">Sair do setor?</Text>
+                <Text className="mt-2 text-sm leading-6 text-textMuted">
+                  Voce perde o acesso de membro deste setor, mas continua na igreja.
+                </Text>
+                {!!formErrorMessage && (
+                  <View className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
+                    <Text className="text-sm text-danger">{formErrorMessage}</Text>
+                  </View>
+                )}
+                <View className="mt-5 flex-row gap-3">
+                  <TouchableOpacity
+                    className="flex-1 items-center rounded-2xl bg-surface py-4"
+                    onPress={() => setSectorLeaveConfirmOpen(false)}
+                    disabled={isLeavingSector}>
+                    <Text className="font-bold text-textBase">Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className={`flex-1 items-center rounded-2xl py-4 ${
+                      isLeavingSector ? 'bg-surfaceAlt' : 'bg-danger'
+                    }`}
+                    onPress={handleLeaveSector}
+                    disabled={isLeavingSector}>
+                    <Text className="font-bold text-white">
+                      {isLeavingSector ? 'Saindo...' : 'Confirmar'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                className="self-start flex-row items-center py-2"
+                onPress={() => {
+                  setFormErrorMessage('');
+                  setSectorLeaveConfirmOpen(true);
+                }}>
+                <Ionicons name="exit-outline" size={17} color="#F87171" />
+                <Text className="ml-2 text-sm font-semibold text-danger">Sair do setor</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : null}
       </ScrollView>
+
+      <Modal visible={sectorFormOpen} transparent animationType="fade" onRequestClose={closeForms}>
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <Pressable className="flex-1 justify-center bg-black/60 px-5" onPress={closeForms}>
+            <Pressable
+              className="rounded-[28px] border border-surfaceAlt bg-surface px-5 py-5"
+              onPress={(event) => event.stopPropagation()}>
+              <Text className="text-xl font-bold text-textBase">Editar setor</Text>
+              <TextInput
+                className="mt-5 rounded-2xl border border-surfaceAlt bg-background px-4 py-4 text-base text-textBase"
+                placeholder="Nome do setor"
+                placeholderTextColor="#64748B"
+                cursorColor="#6366F1"
+                value={sectorDraftName}
+                onChangeText={setSectorDraftName}
+                maxLength={50}
+              />
+              {!!formErrorMessage && (
+                <View className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
+                  <Text className="text-sm text-danger">{formErrorMessage}</Text>
+                </View>
+              )}
+              <View className="mt-5 flex-row gap-3">
+                <TouchableOpacity
+                  className="flex-1 items-center rounded-2xl bg-background py-4"
+                  onPress={closeForms}>
+                  <Text className="font-bold text-textBase">Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className={`flex-1 items-center rounded-2xl py-4 ${isSaving ? 'bg-surfaceAlt' : 'bg-primary'}`}
+                  onPress={handleSaveSector}
+                  disabled={isSaving}>
+                  <Text className="font-bold text-white">{isSaving ? 'Salvando...' : 'Salvar'}</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      <Modal visible={membersFormOpen} transparent animationType="fade" onRequestClose={closeForms}>
+        <Pressable className="flex-1 justify-center bg-black/60 px-5" onPress={closeForms}>
+          <Pressable
+            className="max-h-[86%] rounded-[28px] border border-surfaceAlt bg-surface px-5 py-5"
+            onPress={(event) => event.stopPropagation()}>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <Text className="text-xl font-bold text-textBase">Membros do setor</Text>
+              <Text className="mt-2 text-sm leading-6 text-textMuted">
+                Adicione membros da igreja e gerencie quem faz parte deste setor.
+              </Text>
+
+              {!!memberErrorMessage && (
+                <View className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
+                  <Text className="text-sm text-danger">{memberErrorMessage}</Text>
+                </View>
+              )}
+
+              {isLoadingMembers ? (
+                <View className="items-center px-4 py-8">
+                  <ActivityIndicator color="#6366F1" />
+                  <Text className="mt-3 text-sm text-textMuted">Carregando membros...</Text>
+                </View>
+              ) : (
+                <>
+                  <View className="mt-5">
+                    <Text className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-textMuted">
+                      No setor
+                    </Text>
+                    <View className="overflow-hidden rounded-2xl border border-surfaceAlt">
+                      {members.map((member, index) => {
+                        const isLastItem = index === members.length - 1;
+                        const isMemberBusy = memberActionId === member.id;
+
+                        return (
+                          <View
+                            key={member.id}
+                            className={`bg-background px-4 py-4 ${
+                              isLastItem ? '' : 'border-b border-surfaceAlt'
+                            }`}>
+                            <View className="flex-row items-start justify-between">
+                              <View className="mr-3 flex-1">
+                                <Text className="text-base font-bold text-textBase">{member.name}</Text>
+                                <Text className="mt-1 text-xs text-textMuted">{member.email}</Text>
+                                <Text className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+                                  {member.role === 'ADMIN' ? 'Admin do setor' : 'Membro'}
+                                </Text>
+                              </View>
+                              <View className="flex-row gap-2">
+                                {canUpdateSectorRoles ? (
+                                  <TouchableOpacity
+                                    className={`h-10 w-10 items-center justify-center rounded-full ${
+                                      member.role === 'ADMIN' ? 'bg-accent/10' : 'bg-surface'
+                                    }`}
+                                    onPress={() => handleToggleSectorAdmin(member)}
+                                    disabled={Boolean(memberActionId)}>
+                                    <Ionicons
+                                      name={isMemberBusy ? 'ellipsis-horizontal' : 'shield-checkmark-outline'}
+                                      size={18}
+                                      color={member.role === 'ADMIN' ? '#38BDF8' : '#94A3B8'}
+                                    />
+                                  </TouchableOpacity>
+                                ) : null}
+                                <TouchableOpacity
+                                  className="h-10 w-10 items-center justify-center rounded-full bg-danger/10"
+                                  onPress={() => handleRemoveSectorMember(member)}
+                                  disabled={Boolean(memberActionId)}>
+                                  <Ionicons
+                                    name={isMemberBusy ? 'ellipsis-horizontal' : 'trash-outline'}
+                                    size={18}
+                                    color="#F87171"
+                                  />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  <View className="mt-6">
+                    <Text className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-textMuted">
+                      Adicionar membro
+                    </Text>
+                    <TextInput
+                      className="mb-3 rounded-2xl border border-surfaceAlt bg-background px-4 py-3 text-base text-textBase"
+                      placeholder="Buscar por nome ou email"
+                      placeholderTextColor="#64748B"
+                      cursorColor="#6366F1"
+                      value={memberSearchTerm}
+                      onChangeText={setMemberSearchTerm}
+                      autoCapitalize="none"
+                    />
+                    {availableChurchMembers.length === 0 ? (
+                      <View className="rounded-2xl border border-dashed border-surfaceAlt bg-background px-4 py-5">
+                        <Text className="text-sm font-semibold text-textBase">
+                          Nenhum membro disponivel para adicionar.
+                        </Text>
+                      </View>
+                    ) : (
+                      <View className="overflow-hidden rounded-2xl border border-surfaceAlt">
+                        {availableChurchMembers.map((member, index) => {
+                          const isLastItem = index === availableChurchMembers.length - 1;
+                          const isMemberBusy = memberActionId === member.id;
+
+                          return (
+                            <View
+                              key={member.id}
+                              className={`bg-background px-4 py-4 ${
+                                isLastItem ? '' : 'border-b border-surfaceAlt'
+                              }`}>
+                              <View className="flex-row items-center justify-between">
+                                <View className="mr-3 flex-1">
+                                  <Text className="text-base font-bold text-textBase">{member.name}</Text>
+                                  <Text className="mt-1 text-xs text-textMuted">{member.email}</Text>
+                                </View>
+                                <TouchableOpacity
+                                  className="h-10 w-10 items-center justify-center rounded-full bg-primary"
+                                  onPress={() => handleAddSectorMember(member)}
+                                  disabled={Boolean(memberActionId)}>
+                                  <Ionicons
+                                    name={isMemberBusy ? 'ellipsis-horizontal' : 'add-outline'}
+                                    size={20}
+                                    color="#FFFFFF"
+                                  />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+                </>
+              )}
+
+              <TouchableOpacity
+                className="mt-5 items-center rounded-2xl bg-background py-4"
+                onPress={closeForms}>
+                <Text className="font-bold text-textBase">Fechar</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <Modal visible={taskFormOpen} transparent animationType="fade" onRequestClose={closeForms}>
         <KeyboardAvoidingView
@@ -940,6 +1582,56 @@ export default function SectorDetailsScreen() {
                 maxLength={80}
               />
 
+              <TextInput
+                className="mt-4 min-h-[120px] rounded-2xl border border-surfaceAlt bg-background px-4 py-4 text-base text-textBase"
+                placeholder="Anotacoes da escala: musicas e tons, cronograma, observacoes..."
+                placeholderTextColor="#64748B"
+                cursorColor="#6366F1"
+                value={scaleDescription}
+                onChangeText={setScaleDescription}
+                maxLength={2000}
+                multiline
+                textAlignVertical="top"
+              />
+
+              <View className="mt-4 rounded-2xl border border-surfaceAlt bg-background px-4 py-4">
+                <Text className="text-sm font-bold uppercase tracking-[0.16em] text-textMuted">
+                  Visibilidade
+                </Text>
+                <View className="mt-3 gap-2">
+                  {scaleStatusOptions.map((option) => {
+                    const isSelected = scaleStatus === option.value;
+
+                    return (
+                      <TouchableOpacity
+                        key={option.value}
+                        className={`rounded-2xl border px-4 py-3 ${
+                          isSelected
+                            ? 'border-primary bg-primary/15'
+                            : 'border-surfaceAlt bg-surface'
+                        }`}
+                        onPress={() => setScaleStatus(option.value)}>
+                        <View className="flex-row items-center justify-between">
+                          <View className="mr-3 flex-1">
+                            <Text className="text-base font-bold text-textBase">
+                              {option.label}
+                            </Text>
+                            <Text className="mt-1 text-xs leading-5 text-textMuted">
+                              {option.description}
+                            </Text>
+                          </View>
+                          <Ionicons
+                            name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+                            size={20}
+                            color={isSelected ? '#6366F1' : '#94A3B8'}
+                          />
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
               <View className="mt-5 rounded-2xl border border-surfaceAlt bg-background px-4 py-4">
                 <View className="mb-4 flex-row items-center justify-between">
                   <TouchableOpacity
@@ -1014,15 +1706,58 @@ export default function SectorDetailsScreen() {
                 </View>
               </View>
 
-              <TextInput
-                className="mt-4 rounded-2xl border border-surfaceAlt bg-background px-4 py-4 text-base text-textBase"
-                placeholder="Horario. Ex: 19:30"
-                placeholderTextColor="#64748B"
-                cursorColor="#6366F1"
-                value={scaleDate ? toDateInputValue(scaleDate).slice(11, 16) : ''}
-                onChangeText={updateScaleTime}
-                keyboardType="numbers-and-punctuation"
-              />
+              <View className="mt-4 rounded-2xl border border-surfaceAlt bg-background px-4 py-4">
+                <View className="mb-3 flex-row items-center justify-between">
+                  <Text className="text-sm font-bold uppercase tracking-[0.16em] text-textMuted">
+                    Horario
+                  </Text>
+                  <Text className="text-base font-extrabold text-textBase">
+                    {scaleDate ? toDateInputValue(scaleDate).slice(11, 16) : '19:00'}
+                  </Text>
+                </View>
+
+                <Text className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-textMuted">
+                  Hora
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                  {hourOptions.map((hour) => {
+                    const selectedHour = scaleDate ? toDateInputValue(scaleDate).slice(11, 13) : '19';
+                    const isSelected = selectedHour === hour;
+
+                    return (
+                      <TouchableOpacity
+                        key={hour}
+                        className={`mr-2 min-w-[52px] items-center rounded-full px-4 py-3 ${
+                          isSelected ? 'bg-primary' : 'bg-surface'
+                        }`}
+                        onPress={() => updateScaleTime('hour', hour)}>
+                        <Text className="text-sm font-bold text-white">{hour}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+
+                <Text className="mb-2 mt-4 text-xs font-bold uppercase tracking-[0.14em] text-textMuted">
+                  Minuto
+                </Text>
+                <View className="flex-row gap-2">
+                  {minuteOptions.map((minute) => {
+                    const selectedMinute = scaleDate ? toDateInputValue(scaleDate).slice(14, 16) : '00';
+                    const isSelected = selectedMinute === minute;
+
+                    return (
+                      <TouchableOpacity
+                        key={minute}
+                        className={`flex-1 items-center rounded-full px-4 py-3 ${
+                          isSelected ? 'bg-primary' : 'bg-surface'
+                        }`}
+                        onPress={() => updateScaleTime('minute', minute)}>
+                        <Text className="text-sm font-bold text-white">{minute}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
 
               {!!formErrorMessage && (
                 <View className="mt-4 rounded-2xl border border-danger/40 bg-danger/10 px-4 py-3">
@@ -1152,6 +1887,12 @@ export default function SectorDetailsScreen() {
               <Text className="mt-2 text-sm leading-6 text-textMuted">
                 Selecione os membros da escala e, se fizer sentido, associe uma tarefa a cada um.
               </Text>
+              {isLoadingParticipantAvailability ? (
+                <View className="mt-4 flex-row items-center rounded-2xl bg-background px-4 py-3">
+                  <ActivityIndicator size="small" color="#6366F1" />
+                  <Text className="ml-3 text-sm text-textMuted">Verificando indisponibilidades...</Text>
+                </View>
+              ) : null}
 
               {members.length === 0 ? (
                 <View className="mt-5 rounded-2xl border border-dashed border-surfaceAlt bg-background px-4 py-5">
@@ -1161,27 +1902,57 @@ export default function SectorDetailsScreen() {
                 </View>
               ) : (
                 <View className="mt-5 gap-3">
-                  {members.map((member) => {
+                  {sortedScaleMembers.map((member) => {
                     const selectedParticipant = draftParticipants.find(
                       (participant) => participant.user_id === member.id,
                     );
+                    const isUnavailable = unavailableMemberIds.has(member.id);
+                    const isParticipantActionDisabled =
+                      isLoadingParticipantAvailability ||
+                      !hasLoadedParticipantAvailability ||
+                      isUnavailable ||
+                      !selectableMemberIdsRef.current.has(member.id);
 
                     return (
-                      <View key={member.id} className="rounded-2xl bg-background px-4 py-4">
+                      <View
+                        key={member.id}
+                        className={`rounded-2xl bg-background px-4 py-4 ${
+                          isUnavailable ? 'opacity-60' : ''
+                        }`}>
                         <View className="flex-row items-start justify-between">
                           <View className="mr-3 flex-1">
                             <Text className="text-base font-bold text-textBase">{member.name}</Text>
                             <Text className="mt-1 text-xs text-textMuted">
-                              {selectedParticipant?.task_name || 'Sem tarefa definida'}
+                              {isUnavailable
+                                ? 'Indisponivel no horario desta escala'
+                                : selectedParticipant?.task_name || 'Sem tarefa definida'}
                             </Text>
                           </View>
                           <TouchableOpacity
                             className={`rounded-full px-4 py-2 ${
-                              selectedParticipant ? 'bg-primary' : 'bg-surface'
+                              isParticipantActionDisabled
+                                ? 'bg-surfaceAlt'
+                                : selectedParticipant
+                                  ? 'bg-primary'
+                                  : 'bg-surface'
                             }`}
-                            onPress={() => toggleDraftMember(member)}>
+                            onPress={
+                              isParticipantActionDisabled
+                                ? undefined
+                                : () => toggleDraftMember(member)
+                            }
+                            disabled={isParticipantActionDisabled}
+                            accessibilityState={{ disabled: isParticipantActionDisabled }}>
                             <Text className="text-sm font-bold text-white">
-                              {selectedParticipant ? 'Na escala' : 'Adicionar'}
+                              {isLoadingParticipantAvailability
+                                ? 'Verificando'
+                                : !hasLoadedParticipantAvailability
+                                  ? 'Bloqueado'
+                                : isUnavailable
+                                ? 'Indisponivel'
+                                : selectedParticipant
+                                  ? 'Na escala'
+                                  : 'Adicionar'}
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -1232,10 +2003,18 @@ export default function SectorDetailsScreen() {
                   <Text className="font-bold text-textBase">Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className={`flex-1 items-center rounded-2xl py-4 ${isSaving ? 'bg-surfaceAlt' : 'bg-primary'}`}
+                  className={`flex-1 items-center rounded-2xl py-4 ${
+                    isSaving || isLoadingParticipantAvailability ? 'bg-surfaceAlt' : 'bg-primary'
+                  }`}
                   onPress={handleSaveParticipants}
-                  disabled={isSaving}>
-                  <Text className="font-bold text-white">{isSaving ? 'Salvando...' : 'Salvar'}</Text>
+                  disabled={isSaving || isLoadingParticipantAvailability}>
+                  <Text className="font-bold text-white">
+                    {isSaving
+                      ? 'Salvando...'
+                      : isLoadingParticipantAvailability
+                        ? 'Verificando...'
+                        : 'Salvar'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>

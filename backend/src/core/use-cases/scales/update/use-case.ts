@@ -9,14 +9,14 @@ export class UpdateScale {
         private readonly scaleRepository: ScaleRepository,
     ) { }
 
-    async execute({ scale_id, sector_id, title, date }: Input): Promise<Output> {
+    async execute({ scale_id, sector_id, title, description, status, date }: Input): Promise<Output> {
         const scale = await this.scaleRepository.findById(scale_id);
 
         if (!scale || scale.sector_id !== sector_id) {
             throw new NotFoundException('Scale not found');
         }
 
-        if (!date && !title) {
+        if (!date && !title && description === undefined && status === undefined) {
             return { data: scale };
         }
 
@@ -31,6 +31,8 @@ export class UpdateScale {
         const updated = await this.scaleRepository.update(scale_id, {
             ...(date ? { date } : {}),
             ...(title ? { title } : {}),
+            ...(description !== undefined ? { description } : {}),
+            ...(status !== undefined ? { status } : {}),
         });
 
         if (!updated) {

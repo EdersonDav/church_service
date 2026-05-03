@@ -45,6 +45,18 @@ export class ParticipantService implements ParticipantRepository {
       .getMany();
   }
 
+  async findByUserAndRange(user_id: string, start_date: Date, end_date: Date): Promise<Participant[]> {
+    return this.entity
+      .createQueryBuilder('participant')
+      .innerJoinAndSelect('participant.scale', 'scale')
+      .leftJoinAndSelect('scale.sector', 'sector')
+      .leftJoinAndSelect('participant.task', 'task')
+      .leftJoinAndSelect('participant.user', 'user')
+      .where('participant.user_id = :user_id', { user_id })
+      .andWhere('scale.date BETWEEN :start_date AND :end_date', { start_date, end_date })
+      .getMany();
+  }
+
   private toDateOnly(date: Date): string {
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
       throw new Error('Invalid date');

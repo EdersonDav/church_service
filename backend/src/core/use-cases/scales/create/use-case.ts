@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ScaleRepository } from '../../../../database/repositories/interfaces';
+import { ScaleStatusEnum } from '../../../../enums';
 import { Input } from './input';
 import { Output } from './output';
 
@@ -9,14 +10,20 @@ export class CreateScale {
         private readonly scaleRepository: ScaleRepository,
     ) { }
 
-    async execute({ sector_id, title, date }: Input): Promise<Output> {
+    async execute({ sector_id, title, description, status, date }: Input): Promise<Output> {
         const existingScale = await this.scaleRepository.findBySectorAndDate(sector_id, date);
 
         if (existingScale) {
             throw new BadRequestException('A scale already exists for this date');
         }
 
-        const data = await this.scaleRepository.save({ sector_id, title, date });
+        const data = await this.scaleRepository.save({
+            sector_id,
+            title,
+            description: description ?? '',
+            status: status ?? ScaleStatusEnum.DRAFT,
+            date,
+        });
         return { data };
     }
 }

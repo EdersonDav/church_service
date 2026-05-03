@@ -10,4 +10,9 @@ export class UnavailabilityDto {
     @ApiProperty({ example: '2024-07-01T00:00:00.000Z', description: 'Date in ISO format' })
     @Transform(({ value }) => value instanceof Date ? value.toISOString() : value)
     date!: string;
+
+    @Expose()
+    @ApiProperty({ example: '2024-07-01T23:59:59.000Z', description: 'End date in ISO format', required: false })
+    @Transform(({ value }) => value instanceof Date ? value.toISOString() : value)
+    end_date?: string;
 }
